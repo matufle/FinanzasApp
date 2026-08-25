@@ -122,3 +122,39 @@ Pantalla de inicio de sesión de una app de finanzas personales.
 
 Pedir el codigo en HTML + Tailwind (no Figma), que es lo que se pega directo
 en los componentes de `frontend/src/paginas/`.
+
+## 7. Ajustes
+
+Endpoints: ninguno propio. Es una pantalla de navegacion hacia Cuentas y
+Categorias, mas el cierre de sesion (que vive en el frontend).
+
+```
+Pantalla de ajustes de una app de finanzas personales.
+- Barra superior con el título "Ajustes".
+- Arriba de todo, una tarjeta de perfil: foto redonda del usuario a la
+  izquierda, y a la derecha el nombre y el email en texto más chico y gris.
+- Debajo, grupos de opciones separados por un título de sección en
+  mayúsculas chicas y gris.
+- Grupo "MI DINERO" con dos filas: "Cuentas" con ícono de billetera, y
+  "Categorías" con ícono de etiquetas. Cada fila tiene el ícono a la
+  izquierda, el texto en el medio y una flecha ">" gris a la derecha.
+- Grupo "LA APP" con una fila "Acerca de" con ícono de información.
+- Al final, separado del resto, un botón de "Cerrar sesión" en rojo, con
+  ícono de salida, sin flecha.
+- Debajo del botón, centrado y muy chico en gris, el texto "Versión 1.0.0".
+- Las filas van agrupadas en tarjetas blancas redondeadas, con una línea
+  separadora fina entre filas del mismo grupo.
+```
+
+### Extras opcionales
+
+Estas dos filas quedan lindas en el diseño pero **todavia no existen**:
+exportar necesita un endpoint nuevo en la Api, y el tema oscuro necesita que
+se implemente el modo oscuro en el frontend. Pedirlas solo cuando se vayan a
+construir, para no dejar botones que no hacen nada.
+
+```
+- Grupo "DATOS" con una fila "Exportar movimientos" con ícono de descarga.
+- Grupo "PREFERENCIAS" con una fila "Tema oscuro" que en vez de flecha
+  tiene un interruptor de encendido/apagado a la derecha.
+```
