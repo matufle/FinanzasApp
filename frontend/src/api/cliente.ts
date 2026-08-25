@@ -1,6 +1,11 @@
-import { leerToken } from "./token";
+import { borrarSesion, leerToken } from "./token";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5199";
+
+// Cuando la Api contesta 401, el token guardado ya no sirve. El cliente HTTP no
+// puede navegar por si mismo (no conoce el router), asi que avisa por un evento
+// y el contexto de sesion se encarga de limpiar el estado y rebotar al login.
+export const EVENTO_SESION_EXPIRADA = "qwak:sesion-expirada";
 
 // Error con el mensaje que manda la API, para poder mostrarlo en pantalla
 // en vez de un "algo salio mal" generico.
@@ -26,7 +31,7 @@ async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
     ...opciones,
     headers: {
       "Content-Type": "application/json",
-      // Cuando la Api pida autenticacion, el token ya viaja en cada pedido.
+      // La Api exige sesion en todo /api salvo el login: el token viaja siempre.
       ...(token !== null ? { Authorization: `Bearer ${token}` } : {}),
       ...opciones.headers,
     },
@@ -40,6 +45,14 @@ async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
     } catch {
       // La respuesta no traia JSON; nos quedamos con el mensaje generico.
     }
+
+    // Los propios endpoints de login contestan 401 cuando la cuenta no tiene
+    // acceso: ahi el 401 es la respuesta esperada, no una sesion vencida.
+    if (respuesta.status === 401 && !ruta.startsWith("/api/auth/")) {
+      borrarSesion();
+      window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
+    }
+
     throw new ErrorApi(respuesta.status, mensaje);
   }
 

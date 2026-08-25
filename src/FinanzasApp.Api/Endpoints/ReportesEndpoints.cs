@@ -6,7 +6,9 @@ public static class ReportesEndpoints
 {
     public static void MapearReportes(this IEndpointRouteBuilder app)
     {
-        var grupo = app.MapGroup("/api/reportes").WithTags("Reportes");
+        var grupo = app.MapGroup("/api/reportes").WithTags("Reportes")
+            // Todo lo que hay abajo es plata del usuario: sin sesion valida, 401.
+            .RequireAuthorization();
 
         grupo.MapGet("/resumen", async (
             DateTime? desde,

@@ -71,8 +71,14 @@ Documentación interactiva en `/scalar/v1` (solo en Development).
 
 ## Endpoints
 
+Todo `/api/*` exige sesión salvo los de login: sin un `Authorization: Bearer`
+válido la respuesta es 401.
+
 | Método | Ruta | Qué hace |
 |---|---|---|
+| POST | `/api/auth/google` | Canjea el ID token de Google por el token de sesión. Público |
+| GET | `/api/auth/yo` | Usuario de la sesión actual |
+| POST | `/api/auth/desarrollo` | Sesión sin Google. Solo existe en Development |
 | GET | `/api/cuentas` | Cuentas activas con saldo actual calculado |
 | GET | `/api/cuentas/{id}` | Una cuenta con su saldo |
 | POST | `/api/cuentas` | Crea una cuenta |
@@ -86,10 +92,28 @@ Documentación interactiva en `/scalar/v1` (solo en Development).
 | GET | `/api/reportes/resumen?desde&hasta&cuentaId` | Totales y desglose por categoría |
 | GET | `/api/reportes/metricas?anio&mes&cuentaId&meses` | Tasa de ahorro, comparativa contra el mes anterior, proyección a fin de mes, flujo de caja y top de egresos |
 
+## Autenticación
+
+Login con Google, restringido a una lista de emails. Google dice quién sos, y la
+Api verifica que ese quién esté permitido antes de emitir su propio token de
+sesión (30 días).
+
+Hace falta un ID de cliente de OAuth de Google Cloud Console y tres valores de
+configuración. Los pasos completos están en
+**[docs/autenticacion.md](docs/autenticacion.md)**.
+
+Mientras `VITE_GOOGLE_CLIENT_ID` esté vacío en `frontend/.env`, el login ofrece
+entrar en modo desarrollo, que no pasa por Google y solo funciona contra una Api
+corriendo en `Development`.
+
 ## CORS
 
 Los orígenes permitidos se configuran en `appsettings.json` bajo `Cors:OrigenesPermitidos`.
 Hay que agregar ahí la URL del frontend antes de conectarlo.
+
+Ojo: el origen también tiene que estar en los **orígenes autorizados de
+JavaScript** del cliente de OAuth en Google Cloud Console, o el botón de Google
+no funciona aunque CORS esté bien.
 
 ## Frontend
 
@@ -112,8 +136,13 @@ Estructura:
 frontend/src/
 ├── api/
 │   ├── tipos.ts      Espejo TypeScript de los DTOs del backend
+│   ├── token.ts      Unico lugar donde se guarda la sesion (localStorage)
 │   ├── cliente.ts    Wrapper de fetch: headers, errores y 204 sin cuerpo
 │   └── finanzas.ts   Una funcion por endpoint
+├── auth/
+│   ├── contexto.ts   El hook useSesion() que usan las pantallas
+│   ├── sesion.tsx    Proveedor de sesion y RutaProtegida
+│   └── google.ts     Carga la libreria de Google Identity Services
 ├── hooks/
 │   └── usePeticion.ts  Maneja cargando / error / datos en un solo lugar
 └── paginas/          Una pantalla por archivo
@@ -122,18 +151,19 @@ frontend/src/
 ## Estado del proyecto
 
 Al 25/08/2026 el backend está completo y verificado de punta a punta contra
-PostgreSQL, y las ocho pantallas del frontend están integradas y navegables:
-Login, Inicio, Movimientos, Nuevo movimiento, Métricas, Cuentas, Categorías
-y Ajustes.
+PostgreSQL, las ocho pantallas del frontend están integradas y navegables
+(Login, Inicio, Movimientos, Nuevo movimiento, Métricas, Cuentas, Categorías
+y Ajustes), y la Api está cerrada detrás de login con Google.
 
 ### Próximos pasos
 
 Lo que falta está detallado y priorizado en el **[roadmap](docs/roadmap.md)**.
 En resumen, lo bloqueante para poder usar la app:
 
-1. **OAuth 2 con Google** — JWT Bearer en la Api, restringido al email propio.
-   Solo toca la capa Api y la pantalla de Login.
+1. **Credenciales de Google** — el código del login ya está; falta crear el ID
+   de cliente en Google Cloud Console y cargar la configuración
+   ([docs/autenticacion.md](docs/autenticacion.md)).
 2. **Deploy** — base en Supabase vía `DATABASE_URL`, y el dominio del frontend
-   agregado a `Cors:OrigenesPermitidos`.
+   agregado a `Cors:OrigenesPermitidos` y a Google Cloud Console.
 3. **Flujo de carga rápido** — gastos frecuentes en un toque, para que registrar
    algo no dé pereza (fase 2 del roadmap).

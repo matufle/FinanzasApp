@@ -77,8 +77,8 @@ export function Ajustes() {
   );
 }
 
-// Mientras no exista el login con Google no hay nombre ni foto que mostrar,
-// asi que la tarjeta explica de donde van a salir en vez de inventar datos.
+// El nombre, el email y la foto salen del login con Google y quedan guardados
+// con la sesion. Si por algo faltan, se muestra un marcador en vez de un hueco.
 function TarjetaPerfil() {
   const { usuario } = useSesion();
 

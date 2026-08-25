@@ -7,7 +7,9 @@ public static class MovimientosEndpoints
 {
     public static void MapearMovimientos(this IEndpointRouteBuilder app)
     {
-        var grupo = app.MapGroup("/api/movimientos").WithTags("Movimientos");
+        var grupo = app.MapGroup("/api/movimientos").WithTags("Movimientos")
+            // Todo lo que hay abajo es plata del usuario: sin sesion valida, 401.
+            .RequireAuthorization();
 
         // Si no mandan fechas, por defecto devuelve el mes en curso,
         // que es lo que el frontend va a querer mostrar al abrir la app.

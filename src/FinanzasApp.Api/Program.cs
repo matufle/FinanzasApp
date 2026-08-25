@@ -1,3 +1,4 @@
+using FinanzasApp.Api.Autenticacion;
 using FinanzasApp.Api.Configuracion;
 using FinanzasApp.Api.Endpoints;
 using FinanzasApp.Application.Excepciones;
@@ -9,6 +10,7 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AgregarInfraestructura(CadenaConexion.Resolver(builder.Configuration));
+builder.Services.AgregarAutenticacion(builder.Configuration, builder.Environment);
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 
@@ -40,6 +42,7 @@ app.UseExceptionHandler(manejador => manejador.Run(async contexto =>
 
     var (codigo, titulo) = excepcion switch
     {
+        AccesoDenegadoException => (StatusCodes.Status401Unauthorized, "Acceso denegado"),
         NoEncontradoException => (StatusCodes.Status404NotFound, "Recurso no encontrado"),
         ReglaDeNegocioException => (StatusCodes.Status400BadRequest, "Solicitud invalida"),
         _ => (StatusCodes.Status500InternalServerError, "Error interno")
@@ -57,6 +60,11 @@ app.UseExceptionHandler(manejador => manejador.Run(async contexto =>
 
 app.UseCors();
 
+// El orden importa: primero CORS (si no, el navegador se come el 401 sin poder
+// leerlo), despues quien sos, y recien despues si podes.
+app.UseAuthentication();
+app.UseAuthorization();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -65,6 +73,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", () => Results.Ok(new { servicio = "FinanzasApp", estado = "ok" }));
 
+app.MapearAutenticacion(app.Environment);
 app.MapearCuentas();
 app.MapearCategorias();
 app.MapearMovimientos();

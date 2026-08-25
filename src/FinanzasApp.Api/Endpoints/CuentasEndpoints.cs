@@ -7,7 +7,9 @@ public static class CuentasEndpoints
 {
     public static void MapearCuentas(this IEndpointRouteBuilder app)
     {
-        var grupo = app.MapGroup("/api/cuentas").WithTags("Cuentas");
+        var grupo = app.MapGroup("/api/cuentas").WithTags("Cuentas")
+            // Todo lo que hay abajo es plata del usuario: sin sesion valida, 401.
+            .RequireAuthorization();
 
         grupo.MapGet("/", async (ServicioCuenta servicio) =>
             Results.Ok(await servicio.ObtenerTodasAsync()))

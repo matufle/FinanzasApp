@@ -5,7 +5,8 @@ que hace falta para **usar la app todos los días** (deadline: septiembre 2026),
 después lo que la hace mejor.
 
 Estado al 25/08/2026: backend .NET 10 completo y probado, frontend con las ocho
-pantallas integradas y navegables. Lo que sigue es lo que falta.
+pantallas integradas y navegables, y la Api cerrada detrás de login con Google.
+Lo que sigue es lo que falta.
 
 ---
 
@@ -33,21 +34,37 @@ poner la URL en la variable de entorno `DATABASE_URL`.
 Transaction mode) y no la conexión directa (5432), porque el pooler es el que
 aguanta que la Api abra y cierre conexiones todo el tiempo.
 
-### 1.3 OAuth 2 con Google
-JWT Bearer en la Api, `.RequireAuthorization()` sobre los grupos de endpoints,
-restringido a un solo email (el tuyo). Domain / Application / Infrastructure no
-se tocan: es todo capa Api + la pantalla de Login.
+### 1.3 OAuth 2 con Google — código listo (25/08/2026), falta configurarlo
+Implementado de punta a punta. Los cuatro grupos de endpoints
+(`/api/cuentas`, `/api/categorias`, `/api/movimientos`, `/api/reportes`) van con
+`.RequireAuthorization()` y devuelven 401 sin sesión. Domain, Application e
+Infrastructure no se tocaron: es todo capa Api más la pantalla de Login.
 
-El frontend ya está preparado: hay que reemplazar el `entrarConGoogle()`
-placeholder de `src/paginas/Login.tsx` por el flujo real y llamar a
-`iniciarSesion(tokenReal, usuario)`. El contexto de sesión ya tiene el campo
-`usuario` (nombre / email / foto) esperando que OAuth se lo pase, y el cliente
-HTTP ya manda el token como `Bearer` en cada pedido.
+El flujo: Google devuelve un ID token, `POST /api/auth/google` lo valida contra
+las claves públicas de Google, chequea que el email esté en `EmailsPermitidos` y
+emite un token propio de 30 días. Se emite uno propio porque el de Google dura
+una hora y desde el celular eso es volver a loguearse todo el tiempo.
+
+**Lo único que falta es crear las credenciales en Google Cloud Console y
+cargarlas.** Los pasos exactos, las tres claves de la Api y los problemas
+comunes están en [`docs/autenticacion.md`](autenticacion.md).
+
+Mientras tanto hay un modo desarrollo: si `VITE_GOOGLE_CLIENT_ID` está vacío, el
+login ofrece entrar sin Google contra `POST /api/auth/desarrollo`, endpoint que
+solo se mapea cuando la Api corre en `Development`.
+
+Pendiente chico: no hay tests de integración sobre los endpoints protegidos
+(hoy la verificación de que un 401 llega cuando corresponde se hizo a mano).
 
 ### 1.4 Deploy
 - **Backend**: contenedor con la Api. `DATABASE_URL` apuntando a Supabase.
 - **Frontend**: build estático de Vite. `VITE_API_URL` apuntando a la Api.
 - **CORS**: agregar el dominio del frontend a `Cors:OrigenesPermitidos`.
+- **Autenticación**: cargar `Autenticacion__GoogleClientId`,
+  `Autenticacion__EmailsPermitidos__0` y `Autenticacion__ClaveFirma` como
+  variables de entorno, y agregar el dominio del frontend a los orígenes
+  autorizados en Google Cloud Console. Sin esas tres la Api no arranca en
+  producción, a propósito. Ver [`docs/autenticacion.md`](autenticacion.md).
 - Aplicar las migraciones contra la base de producción.
 
 ### 1.5 Tests — parcial (25/08/2026)
@@ -55,8 +72,9 @@ HTTP ya manda el token como `Bearer` en cada pedido.
 coincida con el de la categoría) y `ServicioMetricas` (los cálculos de tasa de
 ahorro y proyección), con repositorios en memoria en `Dobles/`.
 
-Falta `ServicioCuenta` (el saldo calculado) y, cuando exista OAuth, algún test
-de integración sobre los endpoints.
+Falta `ServicioCuenta` (el saldo calculado) y tests de integración sobre los
+endpoints, que ahora además tendrían que cubrir la autenticación: que un pedido
+sin token dé 401 y que uno con token válido pase.
 
 ---
 

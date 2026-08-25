@@ -1,4 +1,5 @@
 import { api } from "./cliente";
+import type { RespuestaSesion, Usuario } from "./token";
 import type {
   Categoria,
   CrearCategoriaRequest,
@@ -60,4 +61,16 @@ export const reportes = {
         meses: String(meses),
       }),
     ),
+};
+
+export const autenticacion = {
+  // Canjea el ID token que devuelve Google por el token propio de Qwak.
+  conGoogle: (credencial: string) =>
+    api.post<RespuestaSesion>("/api/auth/google", { credencial }),
+
+  // Solo existe cuando la Api corre en Development. Sirve para trabajar en el
+  // frontend sin tener que pasar por Google en cada recarga.
+  desarrollo: () => api.post<RespuestaSesion>("/api/auth/desarrollo", {}),
+
+  yo: () => api.get<Usuario>("/api/auth/yo"),
 };

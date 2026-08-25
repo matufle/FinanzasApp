@@ -7,7 +7,9 @@ public static class CategoriasEndpoints
 {
     public static void MapearCategorias(this IEndpointRouteBuilder app)
     {
-        var grupo = app.MapGroup("/api/categorias").WithTags("Categorias");
+        var grupo = app.MapGroup("/api/categorias").WithTags("Categorias")
+            // Todo lo que hay abajo es plata del usuario: sin sesion valida, 401.
+            .RequireAuthorization();
 
         grupo.MapGet("/", async (string? tipo, ServicioCategoria servicio) =>
             Results.Ok(await servicio.ObtenerTodasAsync(tipo)))

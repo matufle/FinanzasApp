@@ -1,19 +1,52 @@
-import { useNavigate } from "react-router-dom";
-import { Logo } from "../componentes/Logo";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { autenticacion } from "../api/finanzas";
+import type { RespuestaSesion } from "../api/token";
+import { CLIENT_ID, GOOGLE_CONFIGURADO, cargarGoogle } from "../auth/google";
 import { useSesion } from "../auth/contexto";
+import { Logo } from "../componentes/Logo";
 
 // Pantalla de entrada. Es la unica ruta publica: todo lo demas exige sesion.
+//
+// El flujo completo son tres pasos: Google identifica al usuario en su propio
+// popup y devuelve un ID token firmado, ese token se le manda a la Api, y la
+// Api contesta con el token de Qwak que se guarda para todos los pedidos.
 export function Login() {
   const { iniciarSesion } = useSesion();
   const navegar = useNavigate();
+  const ubicacion = useLocation();
 
-  // TODO: reemplazar por el flujo real de Google OAuth cuando la Api valide
-  // el token (paso 3 del plan). Por ahora abre la app para poder desarrollar
-  // las pantallas siguientes sin quedar trabado en el login.
-  function entrarConGoogle() {
-    iniciarSesion("dev");
-    navegar("/", { replace: true });
-  }
+  const [error, setError] = useState<string | null>(null);
+  const [entrando, setEntrando] = useState(false);
+
+  // Si el usuario llego rebotado desde una pantalla protegida, se lo devuelve
+  // ahi despues de entrar en vez de mandarlo siempre al inicio.
+  const destino = (ubicacion.state as { desde?: string } | null)?.desde ?? "/";
+
+  const entrar = useCallback(
+    async (pedirSesion: () => Promise<RespuestaSesion>) => {
+      setEntrando(true);
+      setError(null);
+      try {
+        const sesion = await pedirSesion();
+        iniciarSesion(sesion.token, sesion.usuario);
+        navegar(destino, { replace: true });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "No se pudo iniciar sesion.");
+        setEntrando(false);
+      }
+    },
+    [iniciarSesion, navegar, destino],
+  );
+
+  const conGoogle = useCallback(
+    (credencial: string) => void entrar(() => autenticacion.conGoogle(credencial)),
+    [entrar],
+  );
+
+  const conDesarrollo = useCallback(() => void entrar(() => autenticacion.desarrollo()), [entrar]);
+
+  const alFallarGoogle = useCallback((mensaje: string) => setError(mensaje), []);
 
   return (
     <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-background selection:bg-surface-variant">
@@ -37,16 +70,24 @@ export function Login() {
 
         {/* Accion de autenticacion */}
         <div className="mx-auto flex w-full max-w-xs flex-col gap-stack-gap-md">
-          <button
-            type="button"
-            onClick={entrarConGoogle}
-            className="flex h-14 w-full items-center justify-center gap-inline-gutter rounded-xl border border-outline-variant bg-surface-container-lowest shadow-soft transition-all duration-300 hover:shadow-floating active:scale-[0.98]"
-          >
-            <LogoGoogle />
-            <span className="font-label-sm text-label-sm text-on-surface">
-              Continuar con Google
-            </span>
-          </button>
+          {entrando ? (
+            <p
+              role="status"
+              className="text-center font-body-md text-body-md text-on-surface-variant"
+            >
+              Entrando...
+            </p>
+          ) : GOOGLE_CONFIGURADO ? (
+            <BotonGoogle alEntrar={conGoogle} alFallar={alFallarGoogle} />
+          ) : (
+            <BotonDesarrollo onClick={conDesarrollo} />
+          )}
+
+          {error !== null && (
+            <p role="alert" className="text-center font-body-md text-body-md text-error">
+              {error}
+            </p>
+          )}
         </div>
       </main>
 
@@ -57,6 +98,101 @@ export function Login() {
         </p>
       </div>
     </div>
+  );
+}
+
+// El boton lo dibuja Google, no nosotros: su libreria exige renderizarlo ella
+// misma para poder abrir el popup de seleccion de cuenta. Se lo configura para
+// que diga "Continuar con Google", que es lo que pedia el diseño.
+function BotonGoogle({
+  alEntrar,
+  alFallar,
+}: {
+  alEntrar: (credencial: string) => void;
+  alFallar: (mensaje: string) => void;
+}) {
+  const contenedor = useRef<HTMLDivElement>(null);
+
+  // La libreria de Google se queda con la funcion que le pasamos en
+  // initialize(). Guardarla en un ref permite que siempre llame a la version
+  // actual sin tener que reinicializar la libreria en cada render.
+  const ultimoAlEntrar = useRef(alEntrar);
+  useEffect(() => {
+    ultimoAlEntrar.current = alEntrar;
+  }, [alEntrar]);
+
+  useEffect(() => {
+    const destino = contenedor.current;
+    if (destino === null) return;
+
+    let vivo = true;
+
+    cargarGoogle()
+      .then((identidad) => {
+        if (!vivo) return;
+
+        identidad.initialize({
+          client_id: CLIENT_ID,
+          callback: (respuesta) => ultimoAlEntrar.current(respuesta.credential),
+          // Entrar solo, sin tocar nada, es desconcertante la primera vez.
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        // En desarrollo React monta los efectos dos veces; sin esto quedarian
+        // dos botones de Google uno abajo del otro.
+        destino.replaceChildren();
+
+        identidad.renderButton(destino, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "rectangular",
+          logo_alignment: "center",
+          locale: "es",
+          // Google exige un ancho en pixeles y no acepta mas de 400.
+          width: Math.min(Math.round(destino.getBoundingClientRect().width) || 320, 400),
+        });
+      })
+      .catch((e: unknown) => {
+        if (!vivo) return;
+        alFallar(e instanceof Error ? e.message : "No se pudo cargar el login de Google.");
+      });
+
+    return () => {
+      vivo = false;
+    };
+  }, [alFallar]);
+
+  return (
+    <div
+      ref={contenedor}
+      className="flex w-full justify-center overflow-hidden rounded-md shadow-soft"
+    />
+  );
+}
+
+// Solo aparece cuando no hay VITE_GOOGLE_CLIENT_ID configurado, es decir en
+// desarrollo. Del otro lado, la Api unicamente publica /api/auth/desarrollo
+// cuando corre en Development, asi que esto no puede abrir nada en produccion.
+function BotonDesarrollo({ onClick }: { onClick: () => void }) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex h-14 w-full items-center justify-center gap-inline-gutter rounded-xl border border-outline-variant bg-surface-container-lowest shadow-soft transition-all duration-300 hover:shadow-floating active:scale-[0.98]"
+      >
+        <LogoGoogle />
+        <span className="font-label-sm text-label-sm text-on-surface">
+          Entrar en modo desarrollo
+        </span>
+      </button>
+      <p className="text-center font-body-md text-body-md text-on-surface-variant">
+        Falta configurar <code>VITE_GOOGLE_CLIENT_ID</code> para entrar con Google.
+      </p>
+    </>
   );
 }
 

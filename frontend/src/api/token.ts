@@ -4,8 +4,8 @@
 const CLAVE_TOKEN = "finanzasapp.token";
 const CLAVE_USUARIO = "finanzasapp.usuario";
 
-// Los datos que va a devolver Google cuando se implemente el OAuth.
-// Hasta entonces quedan en null y la interfaz muestra un placeholder.
+// Quien entro. Lo arma la Api a partir del ID token de Google y viaja
+// junto con el token de sesion.
 export interface Usuario {
   nombre: string;
   email: string;
@@ -37,4 +37,12 @@ export function guardarSesion(token: string, usuario: Usuario | null): void {
 export function borrarSesion(): void {
   localStorage.removeItem(CLAVE_TOKEN);
   localStorage.removeItem(CLAVE_USUARIO);
+}
+
+// Lo que devuelve POST /api/auth/google: el token propio de Qwak, cuando vence
+// y quien entro.
+export interface RespuestaSesion {
+  token: string;
+  expira: string;
+  usuario: Usuario;
 }
