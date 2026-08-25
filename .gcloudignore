@@ -1,0 +1,15 @@
+# Que se sube a Cloud Build cuando se deploya con --source. Si este archivo no
+# existe, gcloud arma uno solo a partir del .gitignore; mejor decirlo explicito
+# y que el paquete sea exactamente lo que necesita el Dockerfile.
+.git/
+.github/
+.vs/
+.claude/
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+frontend/
+docs/
+tests/
+*.md
