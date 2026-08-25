@@ -1,1 +1,181 @@
 @import "tailwindcss";
+
+/*
+  Sistema de diseño de Google Stitch (paleta Material 3).
+
+  Stitch entrega su configuracion en un <script>tailwind.config = {...}</script>
+  pensado para el CDN. Este proyecto usa Tailwind 4, que se configura desde el
+  CSS: cada variable declarada en @theme se convierte automaticamente en clases
+  utilitarias. Por ejemplo --color-primary habilita bg-primary, text-primary y
+  border-primary; --spacing-stack-gap-md habilita mb-stack-gap-md o gap-stack-gap-md.
+
+  Traducir el config de Stitch a este bloque una sola vez significa que las
+  proximas pantallas se pegan tal cual: las clases que usa ya existen aca.
+*/
+@theme {
+  /* --- Colores: marca y superficies principales --- */
+  --color-primary: #162839;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #2c3e50;
+  --color-on-primary-container: #96a9be;
+  --color-primary-fixed: #d1e4fb;
+  --color-primary-fixed-dim: #b5c8df;
+  --color-on-primary-fixed: #091d2e;
+  --color-on-primary-fixed-variant: #36485b;
+  --color-inverse-primary: #b5c8df;
+
+  /* Verde: se usa para ingresos y confirmaciones */
+  --color-secondary: #006d37;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #6bfe9c;
+  --color-on-secondary-container: #00743a;
+  --color-secondary-fixed: #6bfe9c;
+  --color-secondary-fixed-dim: #4ae183;
+  --color-on-secondary-fixed: #00210c;
+  --color-on-secondary-fixed-variant: #005228;
+
+  /* Rojo oscuro: acentos de egresos */
+  --color-tertiary: #570001;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #800002;
+  --color-on-tertiary-container: #ff8372;
+  --color-tertiary-fixed: #ffdad5;
+  --color-tertiary-fixed-dim: #ffb4a9;
+  --color-on-tertiary-fixed: #410000;
+  --color-on-tertiary-fixed-variant: #910807;
+
+  /* Errores */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* Fondos, tarjetas y niveles de elevacion */
+  --color-background: #f8f9ff;
+  --color-on-background: #0d1c2d;
+  --color-surface: #f8f9ff;
+  --color-on-surface: #0d1c2d;
+  --color-surface-variant: #d4e4fa;
+  --color-on-surface-variant: #43474c;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-dim: #ccdbf2;
+  --color-surface-tint: #4e6073;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eef4ff;
+  --color-surface-container: #e5efff;
+  --color-surface-container-high: #dbe9ff;
+  --color-surface-container-highest: #d4e4fa;
+  --color-inverse-surface: #233143;
+  --color-inverse-on-surface: #e9f1ff;
+
+  /* Verde y rojo que Stitch usa en la pantalla de inicio. Se agregan para que
+     las clases de sus maquetas existan, pero la app usa secondary y error
+     para ingresos y egresos, que es lo que ya llevan el resto de pantallas. */
+  --color-balance-positive: #2ecc71;
+  --color-balance-negative: #e74c3c;
+
+  /* Bordes y separadores */
+  --color-outline: #74777d;
+  --color-outline-variant: #c4c6cd;
+
+  /* --- Espaciado con nombre (margenes y separaciones del layout) --- */
+  --spacing-container-margin: 20px;
+  --spacing-inline-gutter: 12px;
+  --spacing-stack-gap-sm: 8px;
+  --spacing-stack-gap-md: 16px;
+  --spacing-stack-gap-lg: 24px;
+  /* Respeta la franja inferior de los celulares con gesto de navegacion. */
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 20px);
+
+  /* --- Sombras --- */
+  --shadow-soft: 0px 4px 20px rgba(44, 62, 80, 0.05);
+  --shadow-floating: 0px 10px 30px rgba(44, 62, 80, 0.08);
+
+  /* --- Tipografias --- */
+  --font-display-currency: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display-sm: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-headline-lg: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-headline-md: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-body-lg: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-body-md: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-label-caps: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-label-sm: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Escala tipografica: tamaño + interlineado + peso, en una sola clase --- */
+  --text-display-currency: 36px;
+  --text-display-currency--line-height: 44px;
+  --text-display-currency--letter-spacing: -1px;
+  --text-display-currency--font-weight: 700;
+
+  --text-display-sm: 28px;
+  --text-display-sm--line-height: 36px;
+  --text-display-sm--letter-spacing: -0.5px;
+  --text-display-sm--font-weight: 700;
+
+  --text-headline-lg: 28px;
+  --text-headline-lg--line-height: 36px;
+  --text-headline-lg--font-weight: 700;
+
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 26px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+
+  --text-label-sm: 13px;
+  --text-label-sm--line-height: 18px;
+  --text-label-sm--font-weight: 500;
+
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+  --text-label-caps--letter-spacing: 0.5px;
+  --text-label-caps--font-weight: 700;
+}
+
+/* Fondo global: en desktop la app vive en una columna angosta y centrada,
+   asi que los costados tienen que quedar del mismo color que la pantalla. */
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body-md);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  Material Symbols: la hoja de estilos de Google solo trae la fuente, la clase
+  que la aplica hay que declararla. El texto del <span> es el nombre del icono
+  ("restaurant"), y la ligadura de la fuente lo dibuja.
+*/
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* Entrada del panel inferior (bottom sheet) del modal de nueva categoria. */
+@keyframes deslizarArriba {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

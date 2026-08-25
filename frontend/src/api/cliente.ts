@@ -1,3 +1,5 @@
+import { leerToken } from "./token";
+
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5199";
 
 // Error con el mensaje que manda la API, para poder mostrarlo en pantalla
@@ -18,10 +20,14 @@ interface RespuestaError {
 }
 
 async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
+  const token = leerToken();
+
   const respuesta = await fetch(`${BASE}${ruta}`, {
     ...opciones,
     headers: {
       "Content-Type": "application/json",
+      // Cuando la Api pida autenticacion, el token ya viaja en cada pedido.
+      ...(token !== null ? { Authorization: `Bearer ${token}` } : {}),
       ...opciones.headers,
     },
   });

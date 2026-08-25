@@ -21,12 +21,16 @@ export interface Categoria {
   id: string;
   nombre: string;
   tipo: TipoMovimiento;
+  // Nombre de un icono de Material Symbols. null en las categorias
+  // creadas antes de que existiera el campo.
+  icono: string | null;
   estado: EstadoRegistro;
 }
 
 export interface CrearCategoriaRequest {
   nombre: string;
   tipo: TipoMovimiento;
+  icono?: string;
 }
 
 export interface Movimiento {
