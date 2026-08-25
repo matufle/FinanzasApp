@@ -1,0 +1,23 @@
+# Base de datos para desarrollo local. No usa la nube, no consume cuota
+# de ningun servicio y se puede borrar y recrear cuantas veces haga falta.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: finanzas-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finanzas
+      POSTGRES_USER: finanzas
+      POSTGRES_PASSWORD: desarrollo_local
+    ports:
+      - "5432:5432"
+    volumes:
+      - datos_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finanzas -d finanzas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  datos_postgres:
