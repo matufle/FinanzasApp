@@ -73,3 +73,17 @@ export function nombreMesAnio(anio: number, mes: number): string {
   const nombre = NOMBRE_MES.format(new Date(anio, mes, 1));
   return `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${anio}`;
 }
+
+// La API devuelve las tasas y variaciones como proporcion (0,25 = 25%), que es
+// lo comodo para calcular. Al mostrarlas se pasan a porcentaje entero: los
+// centesimos de porcentaje no le dicen nada a nadie.
+export function formatearPorcentaje(proporcion: number): string {
+  return `${Math.round(proporcion * 100)}%`;
+}
+
+// Igual que la anterior pero con el signo adelante, para las variaciones
+// contra el mes anterior ("+5%", "-12%").
+export function formatearVariacion(proporcion: number): string {
+  const entero = Math.round(proporcion * 100);
+  return `${entero > 0 ? "+" : ""}${entero}%`;
+}

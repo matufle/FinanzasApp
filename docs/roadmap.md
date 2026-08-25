@@ -4,7 +4,7 @@ Todo lo que falta hacer, ordenado. La regla es la misma de siempre: primero lo
 que hace falta para **usar la app todos los días** (deadline: septiembre 2026),
 después lo que la hace mejor.
 
-Estado al 25/08/2026: backend .NET 10 completo y probado, frontend con las siete
+Estado al 25/08/2026: backend .NET 10 completo y probado, frontend con las ocho
 pantallas integradas y navegables. Lo que sigue es lo que falta.
 
 ---
@@ -50,12 +50,13 @@ HTTP ya manda el token como `Bearer` en cada pedido.
 - **CORS**: agregar el dominio del frontend a `Cors:OrigenesPermitidos`.
 - Aplicar las migraciones contra la base de producción.
 
-### 1.5 Tests
-`FinanzasApp.Application.Tests` sigue con el `UnitTest1` de plantilla. Lo más
-valioso, por orden: `ServicioMovimiento` (la validación de que el tipo del
-movimiento coincida con el de la categoría), `ServicioMetricas` (los cálculos
-de tasa de ahorro y proyección, que son fáciles de romper sin darse cuenta) y
-`ServicioCuenta` (el saldo calculado).
+### 1.5 Tests — parcial (25/08/2026)
+30 tests sobre `ServicioMovimiento` (la validación de que el tipo del movimiento
+coincida con el de la categoría) y `ServicioMetricas` (los cálculos de tasa de
+ahorro y proyección), con repositorios en memoria en `Dobles/`.
+
+Falta `ServicioCuenta` (el saldo calculado) y, cuando exista OAuth, algún test
+de integración sobre los endpoints.
 
 ---
 
@@ -91,10 +92,10 @@ Hoy solo se puede anular y volver a cargar. Falta `PUT /api/movimientos/{id}`.
 
 ---
 
-## Fase 3 — Métricas
+## Fase 3 — Métricas ✅ (25/08/2026)
 
-La Api de métricas ya está hecha (25/08/2026): `GET /api/reportes/metricas`
-devuelve todo esto en una sola respuesta. Falta la pantalla.
+Hecha de punta a punta: `GET /api/reportes/metricas` devuelve todo en una sola
+respuesta y la pantalla `/metricas` la consume.
 
 - **Tasa de ahorro del mes** — qué porcentaje de lo que entró no se gastó. ✅ Api
 - **Comparativa mes a mes** — cuánto más o menos se gastó y se ganó contra el
@@ -104,8 +105,12 @@ devuelve todo esto en una sola respuesta. Falta la pantalla.
 - **Flujo de caja** — gráfico de barras con ingresos vs egresos de los últimos
   6 meses. ✅ Api
 - **Top categorías de egreso** del mes. ✅ Api
-- Pendiente: **pantalla de Métricas** (el prompt para Stitch está en
-  [prompts-stitch.md](prompts-stitch.md), sección 8).
+- **Pantalla de Métricas** en `/metricas`. ✅ (25/08/2026)
+
+La pantalla quedó integrada con las dos maquetas de Stitch (llena y vacía).
+Con ella la barra de navegación pasó a tener 5 ítems. Pendientes chicos: falta
+el filtro por cuenta (la Api ya acepta `cuentaId`) y elegir cuántos meses
+muestra el flujo de caja (hoy son 6 fijos).
 
 ---
 

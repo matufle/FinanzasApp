@@ -122,8 +122,9 @@ frontend/src/
 ## Estado del proyecto
 
 Al 25/08/2026 el backend está completo y verificado de punta a punta contra
-PostgreSQL, y las siete pantallas del frontend están integradas y navegables:
-Login, Inicio, Movimientos, Nuevo movimiento, Cuentas, Categorías y Ajustes.
+PostgreSQL, y las ocho pantallas del frontend están integradas y navegables:
+Login, Inicio, Movimientos, Nuevo movimiento, Métricas, Cuentas, Categorías
+y Ajustes.
 
 ### Próximos pasos
 
@@ -134,4 +135,5 @@ En resumen, lo bloqueante para poder usar la app:
    Solo toca la capa Api y la pantalla de Login.
 2. **Deploy** — base en Supabase vía `DATABASE_URL`, y el dominio del frontend
    agregado a `Cors:OrigenesPermitidos`.
-3. **Pantalla de Métricas** — la Api ya está; falta el diseño y la pantalla.
+3. **Flujo de carga rápido** — gastos frecuentes en un toque, para que registrar
+   algo no dé pereza (fase 2 del roadmap).

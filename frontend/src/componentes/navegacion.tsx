@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Icono } from "./Icono";
 
-export type Seccion = "inicio" | "movimientos" | "cuentas" | "ajustes";
+export type Seccion = "inicio" | "movimientos" | "metricas" | "cuentas" | "ajustes";
 
 interface Item {
   clave: Seccion;
@@ -15,6 +15,7 @@ interface Item {
 const ITEMS: Item[] = [
   { clave: "inicio", etiqueta: "Inicio", icono: "home", ruta: "/" },
   { clave: "movimientos", etiqueta: "Movimientos", icono: "receipt_long", ruta: "/movimientos" },
+  { clave: "metricas", etiqueta: "Métricas", icono: "monitoring", ruta: "/metricas" },
   { clave: "cuentas", etiqueta: "Cuentas", icono: "account_balance_wallet", ruta: "/cuentas" },
   { clave: "ajustes", etiqueta: "Ajustes", icono: "settings", ruta: "/ajustes" },
 ];
@@ -33,7 +34,7 @@ function esApagado(item: Item, activo: Seccion) {
 export function NavegacionInferior({ activo }: { activo: Seccion }) {
   return (
     <nav className="fixed bottom-0 z-40 w-full rounded-t-xl bg-surface-container-lowest pt-2 pb-safe-bottom shadow-[0px_-4px_20px_rgba(44,62,80,0.05)] md:hidden">
-      <div className="flex h-[64px] items-center justify-around px-4">
+      <div className="flex h-[64px] items-center justify-around px-1">
         {ITEMS.map((item) => {
           const esActivo = item.clave === activo;
 
@@ -48,7 +49,7 @@ export function NavegacionInferior({ activo }: { activo: Seccion }) {
             </>
           );
 
-          const clases = `relative flex h-16 w-16 flex-col items-center justify-center rounded-xl transition-colors ${
+          const clases = `relative flex h-16 w-full max-w-[72px] flex-col items-center justify-center rounded-xl transition-colors ${
             esActivo
               ? "text-secondary font-bold"
               : esApagado(item, activo)

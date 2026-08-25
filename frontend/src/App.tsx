@@ -6,6 +6,7 @@ import { Categorias } from "./paginas/Categorias";
 import { Cuentas } from "./paginas/Cuentas";
 import { NuevoMovimiento } from "./paginas/NuevoMovimiento";
 import { Movimientos } from "./paginas/Movimientos";
+import { Metricas } from "./paginas/Metricas";
 import { Ajustes } from "./paginas/Ajustes";
 
 // /login es la unica ruta publica. El resto pasa por RutaProtegida,
@@ -29,6 +30,14 @@ export default function App() {
             element={
               <RutaProtegida>
                 <Categorias />
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/metricas"
+            element={
+              <RutaProtegida>
+                <Metricas />
               </RutaProtegida>
             }
           />
