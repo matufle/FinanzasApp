@@ -223,6 +223,65 @@ Todo configurable desde Ajustes: qué avisos sí y cuáles no, y a qué hora.
 
 ---
 
+## Fase 6 — Multiusuario
+
+**Va última a propósito, y es el cierre del proyecto.** Hasta acá Qwak es de una
+sola persona, y no es solo el login: el modelo de datos entero asume un dueño
+único. `Cuenta`, `Categoria` y `Movimiento` no tienen `UsuarioId`, y no existe
+tabla de usuarios. `EmailsPermitidos` no es una lista de usuarios: es la lista de
+quiénes pueden entrar a *esta* instalación.
+
+Es decir que hoy, si entrara otra persona, vería y editaría los mismos datos.
+
+El motivo para hacerlo algún día es concreto: la app va a ir al portfolio, y una
+app de finanzas que cualquiera puede probar con su cuenta se demuestra sola,
+mientras que una que solo corre con los datos del autor hay que explicarla.
+
+### 6.1 Multiusuario propiamente dicho
+Lo caro, y lo que hay que hacer primero:
+
+- Entidad `Usuario` (email como identidad canónica, nombre, foto, fecha de alta).
+- `UsuarioId` en `Cuenta`, `Categoria` y `Movimiento`.
+- Filtrado por usuario en **todos** los repositorios. Es el punto donde se cuelan
+  las fugas de datos: alcanza con una consulta sin filtrar para que alguien vea
+  los movimientos de otro.
+- Migración de los datos existentes, asignándolos al usuario original.
+- Revisar saldos, reportes y métricas, que hoy suman sobre toda la tabla.
+- Los datos semilla pasan a sembrarse **por usuario nuevo**, no una vez por base.
+- Tests de que un usuario no puede leer ni tocar nada de otro. No son opcionales:
+  es la clase de bug que no se nota hasta que es un problema serio.
+
+Ojo: esto es independiente de cómo se loguee la gente. Se puede hacer entero
+manteniendo solo el login con Google, y conviene hacerlo así.
+
+### 6.2 Login propio con email y contraseña
+Solo si hace falta, y **después** de 6.1. Sirve para quien no tiene o no quiere
+usar cuenta de Google.
+
+- Hash con Argon2id o BCrypt. Nunca el hash a mano, nunca SHA de la contraseña.
+- Verificación de email, "olvidé mi contraseña" con tokens de un solo uso y
+  vencimiento corto, y rate limiting contra fuerza bruta.
+- Un servicio de correo (Resend, Postmark o similar) para mandar todo eso.
+
+La parte que se subestima no es guardar el hash: es el ciclo de vida completo.
+
+### 6.3 Vincular cuentas (*account linking*)
+El problema real: alguien se registró con Google y después intenta entrar con
+email y contraseña usando el mismo mail. Sin resolverlo quedan dos cuentas
+distintas con los mismos datos partidos al medio.
+
+La solución estándar es que **la identidad canónica sea el email, no el
+proveedor**: una fila en `Usuario` por email, y una tabla `IdentidadExterna`
+(proveedor + id externo + fecha) con una fila por cada forma de entrar. Si el
+email ya existe, se pide confirmar por el proveedor original y se vinculan.
+
+**La trampa:** solo se puede vincular por email si el proveedor lo dio como
+verificado. Por eso `ServicioSesion` ya chequea `EmailVerified` antes de aceptar
+el token de Google — sin eso, alguien podría registrar tu email en un proveedor
+que no verifica nada y quedarse con tu cuenta.
+
+---
+
 ## Pendientes menores
 
 - Vite a veces sirve una versión vieja de un archivo editado dos veces en el
