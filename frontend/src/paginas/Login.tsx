@@ -28,7 +28,7 @@ export function Login() {
             <Logo className="h-24 w-24" />
           </div>
           <h1 className="mb-stack-gap-sm font-headline-lg text-headline-lg tracking-tight text-primary">
-            FinanzasApp
+            Qwak
           </h1>
           <p className="max-w-[280px] font-body-md text-body-md text-on-surface-variant">
             Tus finanzas, simplificadas.

@@ -48,7 +48,7 @@ export function Ajustes() {
           {acercaDeAbierto && (
             <div className="border-t border-surface-container-low px-4 py-4 font-body-md text-body-md text-on-surface-variant">
               <p className="mb-2">
-                FinanzasApp es una app de finanzas personales hecha a medida: registrás
+                Qwak es una app de finanzas personales hecha a medida: registrás
                 ingresos y egresos, los clasificás por categoría y ves el balance de cada mes.
               </p>
               <p>Los datos viven en tu propia base y no se comparten con nadie.</p>

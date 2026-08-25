@@ -1,7 +1,9 @@
-// Logo de la app dibujado como SVG en vez de una imagen.
-// El diseño de Stitch venia con un <img> apuntando a un archivo temporal de
-// Google que deja de existir a los pocos dias; asi el logo viaja con el codigo,
-// escala sin pixelarse y no depende de internet.
+// Isotipo de Qwak: una Q formada por el anillo, con la cabeza del pato
+// asomando arriba a la derecha y la ola cruzando abajo como cola de la letra.
+//
+// Esta dibujado como SVG y no como imagen para que escale sin pixelarse
+// (aparece a 96px en el login y a 32px en las barras superiores) y para que
+// no dependa de un archivo externo.
 export function Logo({ className = "w-24 h-24" }: { className?: string }) {
   return (
     <svg
@@ -10,12 +12,26 @@ export function Logo({ className = "w-24 h-24" }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="FinanzasApp"
+      aria-label="Qwak"
     >
-      <rect width="96" height="96" rx="28" className="fill-primary" />
-      <rect x="24" y="54" width="12" height="22" rx="6" fill="#ffffff" fillOpacity="0.45" />
-      <rect x="42" y="42" width="12" height="34" rx="6" fill="#ffffff" fillOpacity="0.7" />
-      <rect x="60" y="26" width="12" height="50" rx="6" className="fill-secondary-fixed-dim" />
+      <g className="stroke-primary-container" strokeLinecap="round" fill="none">
+        {/* Anillo de la Q, abierto a la derecha para dejar entrar al pato */}
+        <path d="M 57.5 24.6 A 27 27 0 1 0 59.5 70.1" strokeWidth="11" />
+
+        {/* Cuello */}
+        <path d="M 58 39 C 58 50, 55 57, 53 64" strokeWidth="11" />
+
+        {/* Ola: cruza el anillo y sale hacia abajo a la derecha */}
+        <path d="M 36 70 C 44 62, 52 78, 62 70 C 68 65, 72 68, 76 74" strokeWidth="9" />
+      </g>
+
+      <g className="fill-primary-container">
+        {/* Cabeza y pico */}
+        <circle cx="60" cy="30" r="10" />
+        <path d="M 68 26 L 78 32 L 68 36 Z" />
+      </g>
+
+      <circle cx="62.5" cy="27" r="2.2" className="fill-surface-container-lowest" />
     </svg>
   );
 }

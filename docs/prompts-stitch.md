@@ -7,6 +7,7 @@ ya devuelve, asi el diseño encaja con los datos sin retoques.
 ## Bloque base (va en todos)
 
 ```
+La app se llama "Qwak" y su logo es un pato azul marino dentro de una Q.
 App de finanzas personales en español, diseño mobile-first (390x844).
 Estilo minimalista y limpio, mucho espacio en blanco, esquinas redondeadas,
 tipografía sans-serif legible. Verde para ingresos, rojo para egresos,
@@ -112,7 +113,7 @@ Todavia sin endpoint: se implementa junto con OAuth 2 de Google.
 Pantalla de inicio de sesión de una app de finanzas personales.
 - Diseño centrado y muy simple, con mucho espacio en blanco.
 - Logo o ícono de la app en la parte superior.
-- Nombre "FinanzasApp" y un subtítulo breve debajo.
+- Nombre "Qwak" y un subtítulo breve debajo.
 - Un único botón de "Continuar con Google" con el logo de Google,
   borde gris y fondo blanco.
 - Texto legal muy chico al pie.
