@@ -41,7 +41,14 @@ public static class CadenaConexion
             Database = uri.AbsolutePath.TrimStart('/'),
             Username = Uri.UnescapeDataString(partes[0]),
             Password = partes.Length > 1 ? Uri.UnescapeDataString(partes[1]) : string.Empty,
-            SslMode = SslMode.Require
+            SslMode = SslMode.Require,
+
+            // Los planes gratis de estos proveedores tienen un tope de conexiones
+            // simultaneas bastante bajo, y Npgsql por defecto se guarda hasta 100
+            // por proceso. Con varias instancias en paralelo eso alcanza para
+            // agotar el tope y dejar la base sin atender a nadie. Diez por
+            // instancia es de sobra para una app de este tamaño.
+            MaxPoolSize = 10
         };
 
         return constructor.ToString();

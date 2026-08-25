@@ -40,18 +40,35 @@ los dos que solo se pueden completar cuando ya existe el dominio del frontend.
    Api en São Paulo hace cruzar el continente varias veces por pantalla. Si ya está
    creada en otra región, o se rehace, o se deploya la Api al lado de ella.
 2. Anotar la contraseña de la base en el momento: Supabase no la vuelve a mostrar.
-3. Botón **Connect** arriba → pestaña **Transaction pooler**. Copiar esa URL, que
-   tiene esta forma:
+3. Botón **Connect** arriba → **Session pooler**. Copiar esa URL, que tiene esta
+   forma:
 
    ```
-   postgresql://postgres.<ref>:<clave>@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
+   postgresql://postgres.<ref>:<clave>@aws-0-sa-east-1.pooler.supabase.com:5432/postgres
    ```
 
-**Tiene que ser el pooler, no la conexión directa**, por dos razones. La conexión
-directa de los proyectos nuevos es solo IPv6 y Cloud Run sale a internet por IPv4:
-contra el puerto 5432 el contenedor no llega ni a conectarse. Y además Cloud Run
-prende y apaga instancias todo el tiempo, que es exactamente el patrón para el que
-está hecho un pooler.
+Hay tres formas de conectarse a Supabase y solo una sirve acá, así que conviene
+tenerlas claras:
+
+| Opción | Host | Puerto | Sirve |
+|---|---|---|---|
+| Conexión directa | `db.<ref>.supabase.co` | 5432 | **No.** Es solo IPv6 y Cloud Run sale por IPv4: el contenedor no llega ni a conectarse |
+| Pooler en modo transacción | `...pooler.supabase.com` | 6543 | **No.** Ver abajo |
+| **Pooler en modo sesión** | `...pooler.supabase.com` | **5432** | **Sí** |
+
+**Por qué no el modo transacción, que es el que Supabase muestra primero.** Probado
+contra esta app: con el puerto 6543 el contenedor arranca, ejecuta la primera
+consulta y después se cuelga sin error ni excepción, hasta que Cloud Run lo mata por
+no responder. Pasa igual con la base vacía y con la base ya migrada, así que no es
+cosa de las migraciones. Con el mismo contenedor y la misma base en el puerto 5432
+arranca, migra, siembra las categorías y contesta. El modo transacción está pensado
+para funciones serverless que abren y cierran una conexión por invocación; esto es un
+proceso de larga vida con su propio pool adentro, que es justo lo que el modo sesión
+espera.
+
+Como el modo sesión sí ocupa una conexión real por cada conexión del pool, la Api
+limita el suyo a diez por instancia (`CadenaConexion.cs`). Con el techo de tres
+instancias son treinta como máximo, muy por debajo del límite del plan gratis.
 
 Si la contraseña tiene `@`, `/`, `:` o `#`, hay que escribirla *url-encodeada*
 dentro de la URL (`@` es `%40`), porque si no corta la URL en el lugar equivocado.
@@ -92,7 +109,7 @@ andar rotándola sin motivo.
 Desde la raíz del repositorio:
 
 ```bash
-gcloud run deploy qwak-api --source . --region southamerica-east1 --allow-unauthenticated --max-instances 3 --cpu-boost --set-env-vars "DATABASE_URL=postgresql://postgres.REF:CLAVE@aws-0-sa-east-1.pooler.supabase.com:6543/postgres,Autenticacion__GoogleClientId=XXXX.apps.googleusercontent.com,Autenticacion__EmailsPermitidos__0=tu-mail@gmail.com,Autenticacion__ClaveFirma=LA-CLAVE-GENERADA"
+gcloud run deploy qwak-api --source . --region southamerica-east1 --allow-unauthenticated --max-instances 3 --cpu-boost --set-env-vars "DATABASE_URL=postgresql://postgres.REF:CLAVE@aws-0-sa-east-1.pooler.supabase.com:5432/postgres,Autenticacion__GoogleClientId=XXXX.apps.googleusercontent.com,Autenticacion__EmailsPermitidos__0=tu-mail@gmail.com,Autenticacion__ClaveFirma=LA-CLAVE-GENERADA"
 ```
 
 Qué hace cada parte:
@@ -330,6 +347,7 @@ que falta.
 | El deploy termina en error y la revisión no toma tráfico | la Api no llegó a escuchar. Casi siempre es la base: `gcloud run services logs read qwak-api --region southamerica-east1` |
 | `Falta la cadena de conexion` en los logs | no llegó `DATABASE_URL` |
 | `Network is unreachable` conectando a Postgres | se usó la conexión directa de Supabase (IPv6) en vez del pooler |
+| El contenedor arranca, no tira ningún error y Cloud Run lo mata por no responder | la URL apunta al pooler en modo transacción (6543). Tiene que ser el modo sesión (5432) |
 | El navegador dice *blocked by CORS policy* | el dominio de `Cors__OrigenesPermitidos__0` no coincide exacto: sobra una barra final, o dice `http` donde va `https` |
 | Todo devuelve 401 | venció el token (30 días) o se cambió `ClaveFirma`. Se arregla volviendo a entrar |
 | El botón de Google no abre nada | falta el dominio en **Orígenes autorizados de JavaScript** |

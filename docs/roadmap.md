@@ -30,9 +30,11 @@ No hay que tocar código: `CadenaConexion.Resolver` ya traduce la URL
 `postgresql://...` que da Supabase al formato que espera Npgsql. Solo hay que
 poner la URL en la variable de entorno `DATABASE_URL`.
 
-**Ojo con Supabase:** conviene usar el *connection pooler* (puerto 6543,
-Transaction mode) y no la conexión directa (5432), porque el pooler es el que
-aguanta que la Api abra y cierre conexiones todo el tiempo.
+**Ojo con Supabase:** va el *pooler en modo sesión* (`...pooler.supabase.com`,
+puerto 5432). Ni la conexión directa, que es solo IPv6 y Cloud Run no la
+alcanza, ni el pooler en modo transacción (6543), que es el que Supabase
+muestra primero pero deja la Api colgada sin tirar error. Está probado y
+explicado en [`docs/deploy.md`](deploy.md).
 
 ### 1.3 OAuth 2 con Google — código listo (25/08/2026), falta configurarlo
 Implementado de punta a punta. Los cuatro grupos de endpoints
