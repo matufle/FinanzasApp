@@ -32,8 +32,9 @@ Application e Infrastructure no saben que existe el login.
    proyecto (por ejemplo, "Qwak").
 2. **APIs y servicios → Pantalla de consentimiento de OAuth**. Tipo de usuario
    **Externo**. Completar nombre de la app, email de asistencia y email de
-   contacto. No hace falta publicarla: mientras esté en modo *Testing*, agregate
-   a vos mismo en **Usuarios de prueba** y alcanza.
+   contacto. Después **publicarla** ("En producción"): como Qwak solo pide los
+   permisos básicos (`openid`, `email`, `profile`), es instantáneo y no hay
+   revisión de Google. Ver la nota sobre costo más abajo.
 3. **APIs y servicios → Credenciales → Crear credenciales → ID de cliente de
    OAuth**, tipo **Aplicación web**.
 4. En **Orígenes autorizados de JavaScript** poner los dominios desde donde se
@@ -46,6 +47,20 @@ Application e Infrastructure no saben que existe el login.
 
 El *Client Secret* que también aparece **no se usa** en este flujo y no hay que
 ponerlo en ningún lado.
+
+### Esto no cuesta nada ni vence
+
+Iniciar sesión con Google es gratis y no tiene vencimiento: no pide tarjeta, no
+necesita cuenta de facturación y no cobra por usuario ni por login. El crédito de
+USD 300 por 90 días de Google Cloud es otra cosa — es para servicios pagos como
+máquinas virtuales o bases de datos, y este flujo no toca ninguno. Tampoco hay
+Firebase de por medio, que sí tiene planes pagos.
+
+Lo único que tiene un límite real es la pantalla de consentimiento en estado
+*Testing*: tope de 100 usuarios de prueba, y Google vence los *refresh tokens* a
+los 7 días. Lo segundo no nos afecta (este flujo no usa refresh tokens en ningún
+momento: el ID token se canjea una sola vez por el token propio de Qwak), pero
+publicar la pantalla saca el tema de encima del todo.
 
 ## Configurar la Api
 
