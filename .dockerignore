@@ -1,0 +1,18 @@
+# Todo lo que no hace falta para compilar la Api. Sin esto el contexto del
+# build se lleva node_modules y los bin/obj de Windows, que ademas de pesar
+# invalidan la cache de Docker en cada cambio.
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+.git/
+.github/
+.vs/
+.claude/
+frontend/
+docs/
+tests/
+Dockerfile
+.dockerignore
+docker-compose.yml
+*.md

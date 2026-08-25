@@ -56,16 +56,31 @@ solo se mapea cuando la Api corre en `Development`.
 Pendiente chico: no hay tests de integración sobre los endpoints protegidos
 (hoy la verificación de que un 401 llega cuando corresponde se hizo a mano).
 
-### 1.4 Deploy
-- **Backend**: contenedor con la Api. `DATABASE_URL` apuntando a Supabase.
-- **Frontend**: build estático de Vite. `VITE_API_URL` apuntando a la Api.
-- **CORS**: agregar el dominio del frontend a `Cors:OrigenesPermitidos`.
-- **Autenticación**: cargar `Autenticacion__GoogleClientId`,
-  `Autenticacion__EmailsPermitidos__0` y `Autenticacion__ClaveFirma` como
-  variables de entorno, y agregar el dominio del frontend a los orígenes
-  autorizados en Google Cloud Console. Sin esas tres la Api no arranca en
-  producción, a propósito. Ver [`docs/autenticacion.md`](autenticacion.md).
-- Aplicar las migraciones contra la base de producción.
+### 1.4 Deploy — repo listo (25/08/2026), falta correrlo
+
+**Decisión: Supabase (base) + Google Cloud Run (Api) + Vercel (frontend).**
+
+Cloud Run sobre Render porque el plan gratis de Render deja de serlo a los tres
+meses; sobre Fly porque Cloud Run es la misma cuenta de Google donde ya están
+las credenciales de OAuth, escala a cero (sin pedidos no factura) y lo que se
+sube es un contenedor común, así que mudarlo después es correr un `deploy` en
+otro lado.
+
+Lo que ya está en el repo:
+- `Dockerfile` multi-etapa en la raíz (SDK para compilar, runtime para correr;
+  imagen final de ~370 MB) más `.dockerignore`. Probado localmente: levanta en
+  `Production`, aplica las migraciones y contesta 401 sin sesión.
+- `Program.cs` lee la variable `PORT`, que es como Cloud Run le dice al
+  contenedor dónde escuchar.
+- `frontend/vercel.json` con el rewrite a `index.html`, sin el cual entrar
+  directo a `/movimientos` o apretar F5 da 404.
+- La guía completa, paso por paso: [`docs/deploy.md`](deploy.md).
+
+Lo que falta es todo cuenta y consola, no código: crear el proyecto de Supabase,
+habilitar facturación en Google Cloud, correr el `gcloud run deploy`, importar
+el frontend en Vercel y, al final, atar los dos cabos que necesitan el dominio
+de Vercel: `Cors__OrigenesPermitidos__0` en la Api y los orígenes autorizados de
+JavaScript en Google Cloud Console.
 
 ### 1.5 Tests — parcial (25/08/2026)
 30 tests sobre `ServicioMovimiento` (la validación de que el tipo del movimiento

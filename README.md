@@ -41,6 +41,9 @@ proveedores (`postgresql://usuario:clave@host/base`) como el formato Npgsql
 (`Host=...;Username=...;Password=...`). La conversión es automática y no hay que
 tocar código para cambiar de proveedor.
 
+El proveedor elegido para este proyecto es **Supabase**, y el resto del deploy es
+**Cloud Run** para la Api y **Vercel** para el frontend: [docs/deploy.md](docs/deploy.md).
+
 ## Aplicar las migraciones
 
 La Api las aplica sola al arrancar, y si la tabla de categorías está vacía carga
@@ -145,8 +148,28 @@ frontend/src/
 │   └── google.ts     Carga la libreria de Google Identity Services
 ├── hooks/
 │   └── usePeticion.ts  Maneja cargando / error / datos en un solo lugar
+├── componentes/      Piezas compartidas: Logo, Icono, modales, navegacion
+│   └── Bienvenida.tsx  Cortina con el video del logo al abrir la app
 └── paginas/          Una pantalla por archivo
 ```
+
+## Deploy
+
+Tres servicios: **Supabase** (base), **Google Cloud Run** (la Api, desde el
+`Dockerfile` de la raíz) y **Vercel** (el build estático del frontend). El paso a
+paso completo, con las variables de entorno de cada uno y los problemas comunes,
+está en **[docs/deploy.md](docs/deploy.md)**.
+
+Para probar la imagen de la Api localmente. Ojo que fuera de `Development` la Api
+exige las tres claves de autenticación y no arranca sin ellas, a propósito:
+
+```
+docker build -t qwak-api .
+docker run --rm -p 8080:8080 -e "DATABASE_URL=Host=host.docker.internal;Port=5432;Database=finanzas;Username=finanzas;Password=desarrollo_local" -e "Autenticacion__GoogleClientId=xxx.apps.googleusercontent.com" -e "Autenticacion__EmailsPermitidos__0=tu-mail@gmail.com" -e "Autenticacion__ClaveFirma=una-clave-de-al-menos-32-caracteres" --add-host=host.docker.internal:host-gateway qwak-api
+```
+
+Contra `docker compose up -d`, `host.docker.internal` es la forma de que el
+contenedor de la Api llegue al de Postgres que corre en la máquina.
 
 ## Estado del proyecto
 
@@ -163,7 +186,7 @@ En resumen, lo bloqueante para poder usar la app:
 1. **Credenciales de Google** — el código del login ya está; falta crear el ID
    de cliente en Google Cloud Console y cargar la configuración
    ([docs/autenticacion.md](docs/autenticacion.md)).
-2. **Deploy** — base en Supabase vía `DATABASE_URL`, y el dominio del frontend
-   agregado a `Cors:OrigenesPermitidos` y a Google Cloud Console.
+2. **Deploy** — el `Dockerfile` de la Api y la guía ya están; falta crear las
+   cuentas y correrlo ([docs/deploy.md](docs/deploy.md)).
 3. **Flujo de carga rápido** — gastos frecuentes en un toque, para que registrar
    algo no dé pereza (fase 2 del roadmap).

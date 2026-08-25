@@ -9,6 +9,13 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render, Railway y Cloud Run no dejan elegir el puerto: levantan el contenedor
+// y avisan por la variable PORT en cual tienen que escuchar. Kestrel no la mira
+// solo, asi que hay que pasarsela.
+var puerto = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(puerto))
+    builder.WebHost.UseUrls($"http://*:{puerto}");
+
 builder.Services.AgregarInfraestructura(CadenaConexion.Resolver(builder.Configuration));
 builder.Services.AgregarAutenticacion(builder.Configuration, builder.Environment);
 builder.Services.AddOpenApi();
