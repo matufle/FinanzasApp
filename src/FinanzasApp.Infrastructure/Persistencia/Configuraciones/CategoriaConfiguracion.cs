@@ -15,6 +15,10 @@ public class CategoriaConfiguracion : IEntityTypeConfiguration<Categoria>
             .IsRequired()
             .HasMaxLength(100);
 
+        // Guarda el nombre del icono de Material Symbols, no la imagen.
+        builder.Property(c => c.Icono)
+            .HasMaxLength(40);
+
         builder.Property(c => c.Tipo).HasConversion<int>().IsRequired();
         builder.Property(c => c.Estado).HasConversion<int>().IsRequired();
         builder.Property(c => c.FechaCreacion).IsRequired();

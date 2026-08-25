@@ -26,7 +26,8 @@ public class ServicioCategoria
         var categoria = new Categoria
         {
             Nombre = request.Nombre.Trim(),
-            Tipo = tipo
+            Tipo = tipo,
+            Icono = string.IsNullOrWhiteSpace(request.Icono) ? null : request.Icono.Trim()
         };
 
         await _repositorio.AgregarAsync(categoria);
@@ -59,5 +60,5 @@ public class ServicioCategoria
     }
 
     private static CategoriaDto Mapear(Categoria c) =>
-        new(c.Id, c.Nombre, c.Tipo.ToString(), c.Estado.ToString());
+        new(c.Id, c.Nombre, c.Tipo.ToString(), c.Icono, c.Estado.ToString());
 }
