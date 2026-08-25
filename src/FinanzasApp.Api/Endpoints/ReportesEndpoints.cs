@@ -18,5 +18,24 @@ public static class ReportesEndpoints
             return Results.Ok(await servicio.ObtenerResumenAsync(inicio, fin, cuentaId));
         })
             .WithSummary("Totales de ingresos, egresos, balance y desglose por categoria.");
+
+        // Las metricas se piden por mes calendario y no por rango libre: tasa
+        // de ahorro, comparacion contra el mes anterior y proyeccion a fin de
+        // mes solo tienen sentido sobre un mes entero.
+        grupo.MapGet("/metricas", async (
+            int? anio,
+            int? mes,
+            Guid? cuentaId,
+            int? meses,
+            ServicioMetricas servicio) =>
+        {
+            var hoy = DateTime.UtcNow;
+            return Results.Ok(await servicio.ObtenerAsync(
+                anio ?? hoy.Year,
+                mes ?? hoy.Month,
+                cuentaId,
+                meses ?? 6));
+        })
+            .WithSummary("Tasa de ahorro, comparativa contra el mes anterior, proyeccion a fin de mes, flujo de caja y top de egresos.");
     }
 }

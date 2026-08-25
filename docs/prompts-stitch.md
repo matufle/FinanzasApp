@@ -159,3 +159,49 @@ construir, para no dejar botones que no hacen nada.
 - Grupo "PREFERENCIAS" con una fila "Tema oscuro" que en vez de flecha
   tiene un interruptor de encendido/apagado a la derecha.
 ```
+
+## 8. Métricas
+
+Endpoint: `GET /api/reportes/metricas?anio&mes&cuentaId&meses`
+
+Devuelve todo en una sola respuesta: `actual` y `anterior` (ingresos, egresos,
+balance del mes), `comparativa` (diferencias y variaciones porcentuales),
+`tasaDeAhorro` (0 a 1, o null si no hubo ingresos), `proyeccion`
+(promedio diario de egresos, egresos y balance proyectados a fin de mes,
+disponible por dia), `flujoDeCaja` (un item por mes, del mas viejo al mas
+nuevo) y `topEgresos` (categorias del mes, de mayor a menor).
+
+Ojo con dos casos que el diseño tiene que contemplar: `tasaDeAhorro` y las
+variaciones pueden venir en null (mes sin ingresos, o mes anterior en cero),
+y ahi hay que mostrar un guion o la diferencia en plata en vez de un
+porcentaje. Pedirle a Stitch el estado vacio junto con la pantalla.
+
+```
+Pantalla de métricas de una app de finanzas personales.
+- Barra superior con el título "Métricas" y, debajo, un navegador de mes con
+  flechas a los costados y "Agosto 2026" en el medio.
+- Primero, una tarjeta grande de "Tasa de ahorro" con un porcentaje bien
+  grande en el centro (por ejemplo "55%"), un anillo de progreso circular
+  alrededor, y debajo en texto chico "ahorraste $55.000 de $100.000".
+- Debajo, dos tarjetas lado a lado comparando con el mes anterior: una de
+  "Ingresos" y otra de "Gastos". Cada una muestra el monto del mes, y abajo
+  una flecha hacia arriba o hacia abajo con el porcentaje de variación en
+  verde o rojo y el texto "vs mes anterior".
+- Después, una tarjeta de "Proyección a fin de mes": el monto proyectado de
+  gastos en grande, una línea de texto que diga "si seguís a este ritmo", y
+  destacado abajo "te quedan $3.437 por día".
+- Después, una tarjeta de "Flujo de caja" con un gráfico de barras de los
+  últimos 6 meses. Cada mes tiene dos barras pegadas: una verde de ingresos
+  y una roja de egresos. Etiquetas de mes abreviadas abajo ("mar", "abr",
+  "may"...) y una leyenda chica arriba a la derecha.
+- Al final, una lista de "En qué se te fue" con las categorías de gasto del
+  mes ordenadas de mayor a menor: ícono circular, nombre, monto a la derecha
+  y una barra de progreso fina debajo que muestre qué porcentaje del gasto
+  total representa.
+- Incluir también la versión vacía de la pantalla, para cuando el mes todavía
+  no tiene movimientos: una ilustración simple y el texto "Todavía no hay
+  datos de este mes".
+```
+
+Cuando esta pantalla se integre hay que agregarla a la barra de navegación
+(`frontend/src/componentes/navegacion.tsx`), que pasa a tener 5 ítems.

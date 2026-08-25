@@ -5,6 +5,7 @@ import type {
   CrearCuentaRequest,
   CrearMovimientoRequest,
   Cuenta,
+  Metricas,
   Movimiento,
   Resumen,
   TipoMovimiento,
@@ -48,4 +49,15 @@ export const movimientos = {
 export const reportes = {
   resumen: (desde?: string, hasta?: string, cuentaId?: string) =>
     api.get<Resumen>(conParametros("/api/reportes/resumen", { desde, hasta, cuentaId })),
+
+  // El mes va como numero 1-12, no como el 0-11 de Date: hay que sumarle uno.
+  metricas: (anio: number, mes: number, cuentaId?: string, meses = 6) =>
+    api.get<Metricas>(
+      conParametros("/api/reportes/metricas", {
+        anio: String(anio),
+        mes: String(mes),
+        cuentaId,
+        meses: String(meses),
+      }),
+    ),
 };

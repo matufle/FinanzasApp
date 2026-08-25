@@ -2,6 +2,7 @@ using FinanzasApp.Api.Configuracion;
 using FinanzasApp.Api.Endpoints;
 using FinanzasApp.Application.Excepciones;
 using FinanzasApp.Infrastructure;
+using FinanzasApp.Infrastructure.Persistencia;
 using Microsoft.AspNetCore.Diagnostics;
 using Scalar.AspNetCore;
 
@@ -25,6 +26,11 @@ builder.Services.AddCors(opciones =>
         .AllowAnyMethod()));
 
 var app = builder.Build();
+
+// Aplica las migraciones pendientes y, si la base no tiene ninguna categoria,
+// carga las tipicas. Asi la app nunca arranca sin nada que elegir, y el deploy
+// no necesita una consola para correr 'dotnet ef'.
+await app.Services.PrepararBaseAsync();
 
 // Traduce las excepciones del dominio a codigos HTTP correctos,
 // para que el frontend reciba 404 o 400 en vez de un 500 generico.

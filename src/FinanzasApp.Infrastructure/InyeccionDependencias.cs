@@ -26,6 +26,7 @@ public static class InyeccionDependencias
         servicios.AddScoped<ServicioCategoria>();
         servicios.AddScoped<ServicioMovimiento>();
         servicios.AddScoped<ServicioReportes>();
+        servicios.AddScoped<ServicioMetricas>();
 
         return servicios;
     }

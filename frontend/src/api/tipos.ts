@@ -70,3 +70,47 @@ export interface Resumen {
   balance: number;
   porCategoria: ResumenCategoria[];
 }
+
+// --- Metricas (GET /api/reportes/metricas) ---
+
+export interface Periodo {
+  anio: number;
+  mes: number;
+  // "ago 2026", ya armada por el backend.
+  etiqueta: string;
+  ingresos: number;
+  egresos: number;
+  balance: number;
+}
+
+export interface Comparativa {
+  diferenciaIngresos: number;
+  // Proporcion, no porcentaje: 0.15 es "15% mas". null cuando el mes anterior
+  // fue cero y no hay porcentaje posible; ahi se muestra la diferencia en plata.
+  variacionIngresos: number | null;
+  diferenciaEgresos: number;
+  variacionEgresos: number | null;
+  diferenciaBalance: number;
+}
+
+export interface Proyeccion {
+  diasTranscurridos: number;
+  diasDelMes: number;
+  promedioDiarioEgresos: number;
+  egresosProyectados: number;
+  balanceProyectado: number;
+  disponiblePorDia: number;
+}
+
+export interface Metricas {
+  actual: Periodo;
+  anterior: Periodo;
+  comparativa: Comparativa;
+  // Proporcion de lo que entro que no se gasto (0.25 = 25%). null si no hubo
+  // ingresos en el mes: la tasa no significa nada y mostrar 0% enganaria.
+  tasaDeAhorro: number | null;
+  proyeccion: Proyeccion;
+  // Del mes mas viejo al mas nuevo, para pintar el grafico de izquierda a derecha.
+  flujoDeCaja: Periodo[];
+  topEgresos: ResumenCategoria[];
+}

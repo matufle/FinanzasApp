@@ -43,9 +43,23 @@ tocar código para cambiar de proveedor.
 
 ## Aplicar las migraciones
 
+La Api las aplica sola al arrancar, y si la tabla de categorías está vacía carga
+las típicas (Sueldo, Supermercado, Alquiler…). No hace falta correr nada a mano,
+ni en desarrollo ni en el deploy. El comando queda igual por si se necesita:
+
 ```
 dotnet ef database update --project src/FinanzasApp.Infrastructure --startup-project src/FinanzasApp.Api
 ```
+
+## Tests
+
+```
+dotnet test
+```
+
+`FinanzasApp.Application.Tests` prueba los servicios contra repositorios en
+memoria (`Dobles/RepositoriosEnMemoria.cs`), sin base de datos: lo que se
+verifica son las reglas y los cálculos, no EF Core.
 
 ## Levantar la API
 
@@ -70,6 +84,7 @@ Documentación interactiva en `/scalar/v1` (solo en Development).
 | POST | `/api/movimientos` | Registra un ingreso o egreso |
 | DELETE | `/api/movimientos/{id}` | Anula un movimiento |
 | GET | `/api/reportes/resumen?desde&hasta&cuentaId` | Totales y desglose por categoría |
+| GET | `/api/reportes/metricas?anio&mes&cuentaId&meses` | Tasa de ahorro, comparativa contra el mes anterior, proyección a fin de mes, flujo de caja y top de egresos |
 
 ## CORS
 
@@ -106,19 +121,17 @@ frontend/src/
 
 ## Estado del proyecto
 
-Al 24/08/2026 el backend está completo y verificado de punta a punta contra
-PostgreSQL: crear cuentas y categorías, registrar movimientos, saldo calculado,
-validación de tipo categoría/movimiento y resumen mensual. El frontend tiene la
-capa de conexión con la API lista; las pantallas todavía son un placeholder.
+Al 25/08/2026 el backend está completo y verificado de punta a punta contra
+PostgreSQL, y las siete pantallas del frontend están integradas y navegables:
+Login, Inicio, Movimientos, Nuevo movimiento, Cuentas, Categorías y Ajustes.
 
 ### Próximos pasos
 
-1. **Datos semilla** — precargar categorías típicas para no arrancar con la app vacía.
-2. **Conectar el diseño de Stitch** — ver [prompts por pantalla](docs/prompts-stitch.md).
-   Prioridad: "Nuevo movimiento" e "Inicio".
-3. **OAuth 2 con Google** — JWT Bearer en la Api, restringido al email propio.
-   Solo toca la capa Api.
-4. **Tests** — `FinanzasApp.Application.Tests` sigue con la plantilla. Lo más
-   valioso: testear `ServicioMovimiento`.
-5. **Deploy** — elegir PostgreSQL gestionado, configurar `DATABASE_URL` y agregar
-   el origen del frontend a `Cors:OrigenesPermitidos`.
+Lo que falta está detallado y priorizado en el **[roadmap](docs/roadmap.md)**.
+En resumen, lo bloqueante para poder usar la app:
+
+1. **OAuth 2 con Google** — JWT Bearer en la Api, restringido al email propio.
+   Solo toca la capa Api y la pantalla de Login.
+2. **Deploy** — base en Supabase vía `DATABASE_URL`, y el dominio del frontend
+   agregado a `Cors:OrigenesPermitidos`.
+3. **Pantalla de Métricas** — la Api ya está; falta el diseño y la pantalla.
