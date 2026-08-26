@@ -4,7 +4,6 @@
 .git/
 .github/
 .vs/
-.claude/
 **/bin/
 **/obj/
 **/node_modules/

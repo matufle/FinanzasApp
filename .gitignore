@@ -480,33 +480,3 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
-
-# ---------------------------------------------------------------
-# Herramientas de IA y agentes
-# ---------------------------------------------------------------
-
-# Claude Code
-.claude/
-CLAUDE.md
-CLAUDE.local.md
-.claude.json
-.mcp.json
-
-# Otros agentes y asistentes
-AGENTS.md
-.cursor/
-.cursorrules
-.cursorignore
-.windsurfrules
-.aider*
-.continue/
-.github/copilot-instructions.md
-.codeium/
-.roo/
-.cline/
-.gemini/
-.qodo/
-
-# Archivos de trabajo de agentes
-.scratchpad/
-*.agent.md
