@@ -130,28 +130,24 @@ la cuenta.
 ### 2.4 Editar un movimiento
 Hoy solo se puede anular y volver a cargar. Falta `PUT /api/movimientos/{id}`.
 
-### 2.5 Tener la app instalada, no una pestaña
-Hoy Qwak se abre desde el navegador. Falta que se pueda **instalar** en el celular
-y en la computadora: ícono propio en la pantalla de inicio o en el menú de
-Windows, y que al abrirla ocupe toda la pantalla, sin barra de direcciones.
+### 2.5 Tener la app instalada, no una pestaña ✅ (26/08/2026)
+Qwak se instala: ícono propio en la pantalla de inicio del celular y en el menú
+de Windows, y al abrirla ocupa toda la pantalla, sin barra de direcciones.
 
-**Cómo:** un `manifest.webmanifest` (nombre, íconos, `display: standalone`, color
-de tema) enlazado desde `index.html`, íconos PNG de 192 y 512 px —el logo ya
-existe en `frontend/public/favicon.svg`— y un service worker mínimo. Con eso
-Chrome ofrece "Instalar" solo, en Android y en Windows; en iPhone se agrega desde
-Compartir → "Agregar a inicio".
+Lo que hay: `frontend/public/manifest.webmanifest` (nombre, atajos a Nuevo
+movimiento y a Métricas, `display: standalone`), los íconos PNG de 192 y 512 px
+más el *maskable* y el de iOS, un service worker mínimo en `public/sw.js` y la
+fila **Instalar la app** en Ajustes, que abre el diálogo del navegador donde se
+puede y explica los pasos a mano donde no (iPhone, que no tiene el evento).
 
-**Por qué está en esta fase:** un ícono en la pantalla de inicio saca de encima el
-paso de abrir el navegador y escribir la dirección, que es el mismo problema de
-fricción que el resto de la fase.
-
-Es además el cimiento de la fase 5: las notificaciones necesitan el mismo service
-worker y el mismo manifest, y en iOS solo llegan si la app está instalada.
-Conviene hacerlo una vez y bien.
+El `viewport` pasó a llevar `viewport-fit=cover`: sin eso, instalada en el
+celular, `env(safe-area-inset-bottom)` devuelve 0 y la barra de navegación queda
+debajo del gesto de inicio.
 
 **Qué no incluye:** funcionar sin internet. Cachear la app para que abra offline es
 un paso aparte y más delicado —hay que decidir qué datos se muestran y cómo se
-sincronizan después—; acá alcanza con que se instale.
+sincronizan después—; el service worker de hoy no cachea nada a propósito, así que
+nunca sirve una versión vieja.
 
 ---
 
@@ -238,33 +234,53 @@ los cálculos existentes; conviene que el resto esté estable y probado antes.
 
 ---
 
-## Fase 5 — Notificaciones
+## Fase 5 — Notificaciones — parcial (26/08/2026)
 
 Que la app avise en el celular y en la computadora (Windows), sin depender de
 tenerla abierta.
 
-**Cómo:** convertir el frontend en una PWA (service worker + manifest) y usar la
-Web Push API. Con eso, una sola implementación cubre Chrome en Windows (los
-avisos aparecen en el centro de notificaciones de Windows), Android, y iOS
-≥ 16.4 si la app se agrega a la pantalla de inicio. No hace falta app nativa ni
-Firebase: alcanza con claves VAPID y una librería de push del lado .NET.
+### 5.1 Recordatorio de carga ✅ (26/08/2026)
+Si el día pasó sin que se cargara ningún movimiento, a la noche llega un aviso, y
+tocarlo abre la pantalla de cargar. Es el primer aviso y el que dejó armada toda
+la cañería para los que faltan.
 
-**Qué hace falta del lado servidor:**
-- Entidad `SuscripcionPush` (endpoint del navegador + claves), un endpoint para
-  registrarla y otro para darla de baja.
-- Un proceso programado (`BackgroundService` con un tick diario) que evalúe qué
-  avisos corresponden y los mande.
-- Entidad `Recordatorio` para los avisos que el usuario carga a mano.
+Cómo quedó, en corto: el navegador se suscribe y la Api guarda la suscripción en
+`suscripciones_push`; Cloud Scheduler le pega a
+`POST /api/notificaciones/recordatorio-diario` a la hora configurada; la Api mira
+si hubo altas hoy y, si no hubo, le manda un POST firmado con VAPID al endpoint de
+cada navegador. El aviso va **sin contenido** —el texto lo pone `sw.js`— y por eso
+no hizo falta ninguna librería de push: alcanzó con firmar un JWT ES256.
 
-**Qué avisar:**
+Dos decisiones que conviene no olvidar:
+
+- **El reloj está afuera.** Cloud Run apaga el contenedor cuando no hay pedidos, y
+  de noche justamente no hay nadie usando la app, así que un `BackgroundService`
+  con un tick diario no se despertaría nunca. El horario lo pone Cloud Scheduler.
+- **La hora local es un número, no una zona horaria.** `Push__DesfasajeHoras`,
+  porque las imágenes chicas de .NET no siempre traen la base de zonas y Argentina
+  no usa horario de verano desde 2009.
+
+La puesta en marcha (claves VAPID, variables y la tarea programada) está en
+[`docs/notificaciones.md`](notificaciones.md).
+
+### 5.2 Los avisos que faltan
+Todos usan la misma cañería: agregar uno es decidir cuándo corresponde y qué dice.
+
 - Un recurrente que se cobra en X días (fase 4.3).
 - Un presupuesto de categoría al 80% y al 100% (fase 4.2).
-- Recordatorios propios ("acordate de anotar el almuerzo").
+- Recordatorios propios ("acordate de anotar el almuerzo"), que necesitan una
+  entidad `Recordatorio`.
 - Resumen semanal o de fin de mes: cuánto gastaste, cómo venís contra el mes
   anterior.
-- Recordatorio de carga si pasaron varios días sin registrar nada.
 
-Todo configurable desde Ajustes: qué avisos sí y cuáles no, y a qué hora.
+Para varios avisos distintos va a hacer falta que el push lleve contenido, y ahí sí
+hay que cifrarlo (ECDH más AES128-GCM) o traer una librería. Las claves de cada
+suscripción (`ClaveP256dh`, `ClaveAuth`) ya se guardan justamente para ese día: no
+va a hacer falta migrar la tabla ni pedir que se vuelvan a suscribir.
+
+### 5.3 Elegir qué avisos sí y a qué hora
+Hoy hay un solo interruptor en Ajustes y la hora se cambia en la tarea programada.
+Cuando haya varios avisos, cada uno con su interruptor y su horario.
 
 ---
 

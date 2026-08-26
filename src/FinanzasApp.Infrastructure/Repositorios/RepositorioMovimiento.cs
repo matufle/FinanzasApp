@@ -55,6 +55,12 @@ public class RepositorioMovimiento : IRepositorioMovimiento
         return ingresos - egresos;
     }
 
+    public async Task<bool> HuboAltasEntreAsync(DateTime desde, DateTime hasta) =>
+        await _contexto.Movimientos.AnyAsync(m =>
+            m.Estado == EstadoRegistro.Activo
+            && m.FechaCreacion >= desde
+            && m.FechaCreacion < hasta);
+
     public async Task AgregarAsync(Movimiento movimiento)
     {
         _contexto.Movimientos.Add(movimiento);

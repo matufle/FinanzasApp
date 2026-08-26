@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSesion } from "../auth/contexto";
+import { useInstalacion } from "../hooks/useInstalacion";
+import { useNotificaciones } from "../hooks/useNotificaciones";
 import { Icono } from "../componentes/Icono";
 import { BarraSuperior, Pantalla } from "../componentes/Pantalla";
 
@@ -39,6 +41,10 @@ export function Ajustes() {
         </Grupo>
 
         <Grupo titulo="LA APP">
+          <Instalacion />
+          <Separador />
+          <Recordatorio />
+          <Separador />
           <Fila
             icono="info"
             texto="Acerca de"
@@ -74,6 +80,152 @@ export function Ajustes() {
         </div>
       </div>
     </Pantalla>
+  );
+}
+
+// Fila para instalar Qwak como app. Que ofrece depende del navegador: Chrome
+// deja abrir su propio dialogo, Safari en iPhone no y hay que explicar los dos
+// toques a mano.
+function Instalacion() {
+  const { estado, instalar } = useInstalacion();
+  const [pasosAbiertos, setPasosAbiertos] = useState(false);
+
+  if (estado === "instalada") {
+    return (
+      <div className="flex w-full items-center gap-4 p-4">
+        <Icono nombre="check_circle" className="text-secondary" />
+        <span className="font-body-lg text-body-lg text-on-surface-variant">
+          La app ya está instalada
+        </span>
+      </div>
+    );
+  }
+
+  if (estado === "disponible") {
+    return (
+      <Fila icono="install_desktop" texto="Instalar la app" onClick={() => void instalar()} />
+    );
+  }
+
+  return (
+    <>
+      <Fila
+        icono="install_desktop"
+        texto="Instalar la app"
+        expandido={pasosAbiertos}
+        onClick={() => setPasosAbiertos((abierto) => !abierto)}
+      />
+      {pasosAbiertos && (
+        <div className="border-t border-surface-container-low px-4 py-4 font-body-md text-body-md text-on-surface-variant">
+          {estado === "manual" ? (
+            <p>
+              En iPhone y iPad se instala desde Safari: tocá el botón de
+              compartir y elegí <strong>Agregar a inicio</strong>.
+            </p>
+          ) : (
+            <p>
+              Este navegador todavía no ofrece instalarla. En Chrome o Edge
+              aparece un ícono en la barra de direcciones, o está en el menú de
+              tres puntos como <strong>Instalar Qwak</strong>.
+            </p>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+// Recordatorio diario: si a la noche todavia no cargaste nada, el servidor
+// manda un aviso al celular o a la compu. La suscripcion es de este navegador,
+// no de la cuenta, asi que el interruptor se prende en cada dispositivo.
+function Recordatorio() {
+  const { estado, cargando, trabajando, mensaje, encender, apagar, probar } = useNotificaciones();
+
+  const encendido = estado === "encendido";
+  const sePuede = estado === "encendido" || estado === "apagado";
+
+  const explicacion = {
+    "sin-soporte": "Este navegador no puede recibir avisos.",
+    "sin-configurar": "El servidor todavía no tiene configuradas las notificaciones.",
+    bloqueado:
+      "Bloqueaste los avisos para este sitio. Se vuelven a permitir desde el candado de la barra de direcciones.",
+    apagado: "Si a la noche no cargaste ningún movimiento, te avisa.",
+    encendido: "Si a la noche no cargaste ningún movimiento, te avisa.",
+  }[estado];
+
+  return (
+    <>
+      <div className="flex w-full items-center justify-between gap-4 p-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <Icono
+            nombre="notifications"
+            className={encendido ? "text-primary-container" : "text-outline"}
+          />
+          <div className="min-w-0">
+            <p className="font-body-lg text-body-lg text-on-background">Recordatorio diario</p>
+            <p className="font-body-md text-body-md text-on-surface-variant">{explicacion}</p>
+          </div>
+        </div>
+
+        <Interruptor
+          activo={encendido}
+          deshabilitado={!sePuede || cargando || trabajando}
+          etiqueta="Recordatorio diario"
+          onClick={() => void (encendido ? apagar() : encender())}
+        />
+      </div>
+
+      {(encendido || mensaje !== null) && (
+        <div className="flex items-center justify-between gap-4 border-t border-surface-container-low px-4 py-3">
+          <p className="font-body-md text-body-md text-on-surface-variant">
+            {mensaje ?? "¿Querés ver cómo llega?"}
+          </p>
+          {encendido && (
+            <button
+              type="button"
+              onClick={() => void probar()}
+              disabled={trabajando}
+              className="shrink-0 rounded-full px-3 py-1 font-label-sm text-label-sm font-bold text-primary-container transition-colors hover:bg-surface-container-low disabled:opacity-50"
+            >
+              Probar
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+// Interruptor al estilo Material: la pastilla se pinta y el circulo se corre.
+function Interruptor({
+  activo,
+  deshabilitado,
+  etiqueta,
+  onClick,
+}: {
+  activo: boolean;
+  deshabilitado: boolean;
+  etiqueta: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={activo}
+      aria-label={etiqueta}
+      disabled={deshabilitado}
+      onClick={onClick}
+      className={`relative h-8 w-14 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-40 ${
+        activo ? "bg-primary-container" : "bg-surface-container-highest"
+      }`}
+    >
+      <span
+        className={`absolute top-1 h-6 w-6 rounded-full bg-surface-container-lowest shadow-soft transition-all duration-200 ${
+          activo ? "left-7" : "left-1"
+        }`}
+      />
+    </button>
   );
 }
 

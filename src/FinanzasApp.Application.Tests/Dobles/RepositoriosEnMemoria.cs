@@ -38,6 +38,11 @@ public class RepositorioMovimientoFalso : IRepositorioMovimiento
             .Where(m => m.CuentaId == cuentaId && m.Estado == EstadoRegistro.Activo)
             .Sum(m => m.MontoConSigno));
 
+    public Task<bool> HuboAltasEntreAsync(DateTime desde, DateTime hasta) =>
+        Task.FromResult(Movimientos.Any(m => m.Estado == EstadoRegistro.Activo
+                                          && m.FechaCreacion >= desde
+                                          && m.FechaCreacion < hasta));
+
     public Task AgregarAsync(Movimiento movimiento)
     {
         Movimientos.Add(movimiento);
@@ -92,4 +97,47 @@ public class RepositorioCategoriaFalso : IRepositorioCategoria
     }
 
     public Task ActualizarAsync(Categoria categoria) => Task.CompletedTask;
+}
+
+public class RepositorioSuscripcionPushFalso : IRepositorioSuscripcionPush
+{
+    public List<SuscripcionPush> Suscripciones { get; } = [];
+
+    public Task<IReadOnlyList<SuscripcionPush>> ObtenerTodasAsync() =>
+        Task.FromResult<IReadOnlyList<SuscripcionPush>>(Suscripciones.ToList());
+
+    public Task<SuscripcionPush?> ObtenerPorEndpointAsync(string endpoint) =>
+        Task.FromResult(Suscripciones.FirstOrDefault(s => s.Endpoint == endpoint));
+
+    public Task AgregarAsync(SuscripcionPush suscripcion)
+    {
+        Suscripciones.Add(suscripcion);
+        return Task.CompletedTask;
+    }
+
+    public Task ActualizarAsync(SuscripcionPush suscripcion) => Task.CompletedTask;
+
+    public Task EliminarAsync(SuscripcionPush suscripcion)
+    {
+        Suscripciones.Remove(suscripcion);
+        return Task.CompletedTask;
+    }
+}
+
+// Enviador que no sale a la red: anota a quien se le mando y devuelve el
+// resultado que se le pida, para poder probar que las suscripciones vencidas
+// se borran solas.
+public class EnviadorPushFalso : IEnviadorPush
+{
+    public List<string> Enviados { get; } = [];
+    public ResultadoPush Resultado { get; set; } = ResultadoPush.Entregado;
+
+    public bool Configurado { get; set; } = true;
+    public string ClavePublica => "clave-de-prueba";
+
+    public Task<ResultadoPush> EnviarAsync(SuscripcionPush suscripcion, CancellationToken cancelacion = default)
+    {
+        Enviados.Add(suscripcion.Endpoint);
+        return Task.FromResult(Resultado);
+    }
 }

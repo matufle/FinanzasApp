@@ -1,0 +1,35 @@
+{
+  "name": "Qwak — Tus finanzas, simplificadas",
+  "short_name": "Qwak",
+  "description": "Registrá ingresos y egresos, clasificalos por categoría y mirá el balance de cada mes.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "es-AR",
+  "categories": ["finance", "productivity"],
+  "background_color": "#f8f9ff",
+  "theme_color": "#f8f9ff",
+  "icons": [
+    { "src": "/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nuevo movimiento",
+      "short_name": "Cargar",
+      "description": "Registrar un ingreso o un egreso",
+      "url": "/movimientos/nuevo",
+      "icons": [{ "src": "/icono-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Métricas",
+      "short_name": "Métricas",
+      "description": "Cómo viene el mes",
+      "url": "/metricas",
+      "icons": [{ "src": "/icono-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

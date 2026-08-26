@@ -114,3 +114,29 @@ export interface Metricas {
   flujoDeCaja: Periodo[];
   topEgresos: ResumenCategoria[];
 }
+
+// --- Notificaciones ---
+
+export interface ConfiguracionPush {
+  // false cuando el servidor no tiene cargadas las claves VAPID: sin eso no se
+  // puede ni ofrecer activarlas.
+  habilitado: boolean;
+  clavePublica: string;
+}
+
+export interface SuscripcionPushRequest {
+  endpoint: string;
+  claveP256dh: string;
+  claveAuth: string;
+  dispositivo: string;
+}
+
+export interface ResultadoEnvio {
+  // true cuando no hacia falta avisar: ya se habia cargado algo, o no hay
+  // ningun dispositivo suscripto.
+  salteado: boolean;
+  motivo: string;
+  enviadas: number;
+  vencidas: number;
+  fallidas: number;
+}

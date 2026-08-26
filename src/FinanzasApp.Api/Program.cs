@@ -18,6 +18,7 @@ if (!string.IsNullOrWhiteSpace(puerto))
 
 builder.Services.AgregarInfraestructura(CadenaConexion.Resolver(builder.Configuration));
 builder.Services.AgregarAutenticacion(builder.Configuration, builder.Environment);
+builder.Services.AgregarNotificaciones(builder.Configuration);
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 
@@ -85,5 +86,6 @@ app.MapearCuentas();
 app.MapearCategorias();
 app.MapearMovimientos();
 app.MapearReportes();
+app.MapearNotificaciones(app.Environment);
 
 app.Run();

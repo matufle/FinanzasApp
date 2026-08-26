@@ -8,7 +8,10 @@ import type {
   Cuenta,
   Metricas,
   Movimiento,
+  ConfiguracionPush,
   Resumen,
+  ResultadoEnvio,
+  SuscripcionPushRequest,
   TipoMovimiento,
 } from "./tipos";
 
@@ -61,6 +64,28 @@ export const reportes = {
         meses: String(meses),
       }),
     ),
+};
+
+export const notificaciones = {
+  // El navegador necesita la clave publica del servidor para poder suscribirse.
+  // Si `habilitado` viene en false es que la Api no tiene claves cargadas.
+  configuracion: () =>
+    api.get<ConfiguracionPush>("/api/notificaciones/clave-publica"),
+
+  suscribir: (datos: SuscripcionPushRequest) =>
+    api.post<void>("/api/notificaciones/suscripciones", datos),
+
+  darDeBaja: (endpoint: string) =>
+    api.post<void>("/api/notificaciones/suscripciones/baja", { endpoint }),
+
+  // El endpoint del navegador es una URL larga, asi que va como parametro
+  // codificado y no pegado a la ruta.
+  estado: (endpoint: string) =>
+    api.get<{ suscripto: boolean }>(
+      conParametros("/api/notificaciones/suscripciones/estado", { endpoint }),
+    ),
+
+  probar: () => api.post<ResultadoEnvio>("/api/notificaciones/prueba", {}),
 };
 
 export const autenticacion = {

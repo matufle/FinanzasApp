@@ -94,6 +94,11 @@ válido la respuesta es 401.
 | DELETE | `/api/movimientos/{id}` | Anula un movimiento |
 | GET | `/api/reportes/resumen?desde&hasta&cuentaId` | Totales y desglose por categoría |
 | GET | `/api/reportes/metricas?anio&mes&cuentaId&meses` | Tasa de ahorro, comparativa contra el mes anterior, proyección a fin de mes, flujo de caja y top de egresos |
+| GET | `/api/notificaciones/clave-publica` | Clave VAPID con la que el navegador se suscribe |
+| POST | `/api/notificaciones/suscripciones` | Registra este navegador para recibir avisos |
+| POST | `/api/notificaciones/suscripciones/baja` | Lo da de baja |
+| POST | `/api/notificaciones/prueba` | Manda el aviso ahora, para probar que llega |
+| POST | `/api/notificaciones/recordatorio-diario` | Avisa si hoy no se cargó nada. Lo llama el programador de tareas, no el navegador |
 
 ## Autenticación
 
@@ -147,11 +152,29 @@ frontend/src/
 │   ├── sesion.tsx    Proveedor de sesion y RutaProtegida
 │   └── google.ts     Carga la libreria de Google Identity Services
 ├── hooks/
-│   └── usePeticion.ts  Maneja cargando / error / datos en un solo lugar
+│   ├── usePeticion.ts       Maneja cargando / error / datos en un solo lugar
+│   ├── useInstalacion.ts    El boton de instalar la app
+│   └── useNotificaciones.ts El recordatorio diario de este navegador
 ├── componentes/      Piezas compartidas: Logo, Icono, modales, navegacion
 │   └── Bienvenida.tsx  Cortina con el video del logo al abrir la app
+├── pwa.ts            Registra el service worker
 └── paginas/          Una pantalla por archivo
 ```
+
+Y en `frontend/public/`, lo que hace que sea una app instalable y no una pestaña:
+`manifest.webmanifest`, `sw.js` (el service worker, que además recibe los avisos),
+los iconos PNG y `favicon.svg`, que es el mismo dibujo que el componente `Logo`.
+
+## Notificaciones
+
+Si el día pasa sin que se cargue ningún movimiento, a la noche llega un aviso al
+celular y a la computadora. Va con la Web Push API y sin ninguna librería: los
+avisos viajan sin contenido, así que alcanza con firmar la cabecera VAPID.
+
+El horario no lo pone la Api —Cloud Run apaga el contenedor cuando no hay
+pedidos— sino un programador de tareas que le pega al endpoint del recordatorio.
+Las claves, las variables y la tarea programada están en
+**[docs/notificaciones.md](docs/notificaciones.md)**.
 
 ## Deploy
 

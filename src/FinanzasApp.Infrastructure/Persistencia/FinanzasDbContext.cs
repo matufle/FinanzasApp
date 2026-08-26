@@ -12,6 +12,7 @@ public class FinanzasDbContext : DbContext
     public DbSet<Cuenta> Cuentas => Set<Cuenta>();
     public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Movimiento> Movimientos => Set<Movimiento>();
+    public DbSet<SuscripcionPush> SuscripcionesPush => Set<SuscripcionPush>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
