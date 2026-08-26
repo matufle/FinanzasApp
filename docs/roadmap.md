@@ -6,7 +6,7 @@ después lo que la hace mejor.
 
 Estado al 25/08/2026: backend .NET 10 completo y probado, frontend con las ocho
 pantallas integradas y navegables, y la Api cerrada detrás de login con Google.
-Lo que sigue es lo que falta.
+Está deployada y andando en producción. Lo que sigue es lo que falta.
 
 ---
 
@@ -36,7 +36,7 @@ alcanza, ni el pooler en modo transacción (6543), que es el que Supabase
 muestra primero pero deja la Api colgada sin tirar error. Está probado y
 explicado en [`docs/deploy.md`](deploy.md).
 
-### 1.3 OAuth 2 con Google — código listo (25/08/2026), falta configurarlo
+### 1.3 OAuth 2 con Google ✅ (25/08/2026)
 Implementado de punta a punta. Los cuatro grupos de endpoints
 (`/api/cuentas`, `/api/categorias`, `/api/movimientos`, `/api/reportes`) van con
 `.RequireAuthorization()` y devuelven 401 sin sesión. Domain, Application e
@@ -47,18 +47,24 @@ las claves públicas de Google, chequea que el email esté en `EmailsPermitidos`
 emite un token propio de 30 días. Se emite uno propio porque el de Google dura
 una hora y desde el celular eso es volver a loguearse todo el tiempo.
 
-**Lo único que falta es crear las credenciales en Google Cloud Console y
-cargarlas.** Los pasos exactos, las tres claves de la Api y los problemas
-comunes están en [`docs/autenticacion.md`](autenticacion.md).
+Las credenciales ya están creadas y cargadas, y el login funciona en producción
+desde el celular y desde la computadora. Los pasos exactos, las tres claves de la
+Api y los problemas comunes —incluidos los tres que aparecieron recién al ponerlo
+en producción— están en [`docs/autenticacion.md`](autenticacion.md).
 
-Mientras tanto hay un modo desarrollo: si `VITE_GOOGLE_CLIENT_ID` está vacío, el
+El botón usa **FedCM**: el diálogo de elección de cuenta lo dibuja el navegador en
+vez de abrirse en una ventana emergente, que los bloqueadores de popups cortaban
+sin avisar. Y cuando el login no llega a abrirse, por el motivo que sea, la
+pantalla ahora lo dice en vez de quedarse muda.
+
+Para desarrollo local hay un atajo: si `VITE_GOOGLE_CLIENT_ID` está vacío, el
 login ofrece entrar sin Google contra `POST /api/auth/desarrollo`, endpoint que
 solo se mapea cuando la Api corre en `Development`.
 
 Pendiente chico: no hay tests de integración sobre los endpoints protegidos
 (hoy la verificación de que un 401 llega cuando corresponde se hizo a mano).
 
-### 1.4 Deploy — repo listo (25/08/2026), falta correrlo
+### 1.4 Deploy ✅ (25/08/2026)
 
 **Decisión: Supabase (base) + Google Cloud Run (Api) + Vercel (frontend).**
 
@@ -78,11 +84,10 @@ Lo que ya está en el repo:
   directo a `/movimientos` o apretar F5 da 404.
 - La guía completa, paso por paso: [`docs/deploy.md`](deploy.md).
 
-Lo que falta es todo cuenta y consola, no código: crear el proyecto de Supabase,
-habilitar facturación en Google Cloud, correr el `gcloud run deploy`, importar
-el frontend en Vercel y, al final, atar los dos cabos que necesitan el dominio
-de Vercel: `Cors__OrigenesPermitidos__0` en la Api y los orígenes autorizados de
-JavaScript en Google Cloud Console.
+**Corriendo desde el 25/08/2026**: base en Supabase (São Paulo, pooler en modo
+sesión), Api en Cloud Run (`southamerica-east1`) y frontend en Vercel, con el CORS
+y los orígenes de OAuth ya atados. Falta, cuando se quiera: el dominio propio del
+paso 4 de la guía, que hoy sigue siendo la URL de Vercel.
 
 ### 1.5 Tests — parcial (25/08/2026)
 30 tests sobre `ServicioMovimiento` (la validación de que el tipo del movimiento
@@ -124,6 +129,29 @@ la cuenta.
 
 ### 2.4 Editar un movimiento
 Hoy solo se puede anular y volver a cargar. Falta `PUT /api/movimientos/{id}`.
+
+### 2.5 Tener la app instalada, no una pestaña
+Hoy Qwak se abre desde el navegador. Falta que se pueda **instalar** en el celular
+y en la computadora: ícono propio en la pantalla de inicio o en el menú de
+Windows, y que al abrirla ocupe toda la pantalla, sin barra de direcciones.
+
+**Cómo:** un `manifest.webmanifest` (nombre, íconos, `display: standalone`, color
+de tema) enlazado desde `index.html`, íconos PNG de 192 y 512 px —el logo ya
+existe en `frontend/public/favicon.svg`— y un service worker mínimo. Con eso
+Chrome ofrece "Instalar" solo, en Android y en Windows; en iPhone se agrega desde
+Compartir → "Agregar a inicio".
+
+**Por qué está en esta fase:** un ícono en la pantalla de inicio saca de encima el
+paso de abrir el navegador y escribir la dirección, que es el mismo problema de
+fricción que el resto de la fase.
+
+Es además el cimiento de la fase 5: las notificaciones necesitan el mismo service
+worker y el mismo manifest, y en iOS solo llegan si la app está instalada.
+Conviene hacerlo una vez y bien.
+
+**Qué no incluye:** funcionar sin internet. Cachear la app para que abra offline es
+un paso aparte y más delicado —hay que decidir qué datos se muestran y cómo se
+sincronizan después—; acá alcanza con que se instale.
 
 ---
 
