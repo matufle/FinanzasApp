@@ -146,3 +146,59 @@ falta de internet la frenan; el login muestra el error en pantalla.
 **401 "Esta cuenta no tiene acceso a la aplicación":** el login con Google salió
 bien pero el email no está en `EmailsPermitidos`. Los logs de la Api dicen con qué
 email se intentó.
+
+**401 `invalid_client` — "The OAuth client was not found"** en la pantalla de
+Google, antes de llegar a elegir la cuenta: el Client ID que mandó el frontend no
+existe en Google. Ojo que **no** es lo mismo que el error de orígenes: ahí el
+cliente existe y lo que falla es desde dónde se lo llama.
+
+La causa típica es un valor mal pegado en el entorno de producción (un dígito de
+más en el número de proyecto, un espacio al final) o un cliente que se borró de
+Google Cloud Console. Como las variables de Vite **se hornean en el build**, lo
+que ve el navegador puede ser distinto de lo que dice tu `.env` local.
+
+Para saber cuál se está mandando de verdad, sacalo del bundle publicado:
+
+```bash
+curl -s https://TU-DOMINIO/assets/$(curl -s https://TU-DOMINIO/ | grep -oE 'assets/index-[^"]+\.js' | head -1 | cut -d/ -f2) | grep -oE '[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com'
+```
+
+Y para saber si ese ID existe, sin abrir la consola de Google:
+
+```bash
+curl -sL "https://accounts.google.com/o/oauth2/v2/auth?client_id=EL-ID&redirect_uri=http://localhost:5173&response_type=code&scope=openid" | grep -oE 'invalid_client|redirect_uri_mismatch'
+```
+
+`redirect_uri_mismatch` significa que el cliente **existe** (ese chequeo no aplica
+a este flujo, que no usa redirect). `invalid_client` significa que no existe.
+
+**El botón se dibuja pero al tocarlo no pasa nada:** el diálogo de Google no llegó
+a abrirse. Según el camino que haya tomado el botón, la consola dice
+`[GSI_LOGGER]: Failed to open popup window… Maybe blocked by the browser?` (un
+bloqueador de ventanas emergentes o una extensión de privacidad) o
+`[GSI_LOGGER]: FedCM get() rejects with…` (no hay ninguna sesión de Google abierta
+en el navegador, o el navegador tiene bloqueado el inicio de sesión de terceros).
+
+La librería no avisa de ninguno de los dos: `error_callback` no se dispara y el
+botón queda mudo. Por eso `avisarSiElLoginNoAbre`, en `auth/google.ts`, escucha
+las dos señales que sí quedan —que `navigator.credentials.get()` rechace, o que
+`window.open()` devuelva `null`— y el login muestra el aviso en pantalla. Los dos
+casos se arreglan del lado de quien entra, no del servidor.
+
+## FedCM
+
+El botón se inicializa con `use_fedcm_for_button: true`. Con FedCM el diálogo de
+elección de cuenta lo dibuja **el navegador**, no una ventana emergente de Google:
+es el camino al que Google está migrando este flujo y, de paso, esquiva a los
+bloqueadores de popups, que dejaban el botón sin abrir nada.
+
+No hay que configurar nada en Google Cloud Console para usarlo, y donde el
+navegador no lo soporte la librería vuelve sola al popup de siempre. Por eso el
+aviso de "ventana bloqueada" sigue en pie: los dos caminos siguen vivos y los dos
+pueden fallar.
+
+Un detalle que se paga si se ignora: apenas se dibuja el botón, la librería
+intenta FedCM **por su cuenta**, sin que nadie toque nada, y ese intento falla de
+mil formas inocentes. Por eso el aviso sólo sale cuando la llamada nació de un
+gesto real (`navigator.userActivation.isActive` durante el clic); si no, la
+pantalla recién abierta mostraría un cartel de error sin motivo.

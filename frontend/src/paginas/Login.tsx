@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { autenticacion } from "../api/finanzas";
 import type { RespuestaSesion } from "../api/token";
-import { CLIENT_ID, GOOGLE_CONFIGURADO, cargarGoogle } from "../auth/google";
+import {
+  CLIENT_ID,
+  GOOGLE_CONFIGURADO,
+  avisarSiElLoginNoAbre,
+  cargarGoogle,
+} from "../auth/google";
 import { useSesion } from "../auth/contexto";
 import { Logo } from "../componentes/Logo";
 
@@ -127,6 +132,10 @@ function BotonGoogle({
 
     let vivo = true;
 
+    // Ni FedCM ni el popup avisan solos cuando no abren; sin esto el boton
+    // queda mudo y la pantalla parece rota sin explicar por que.
+    const dejarDeVigilar = avisarSiElLoginNoAbre(alFallar);
+
     cargarGoogle()
       .then((identidad) => {
         if (!vivo) return;
@@ -137,6 +146,12 @@ function BotonGoogle({
           // Entrar solo, sin tocar nada, es desconcertante la primera vez.
           auto_select: false,
           cancel_on_tap_outside: true,
+          // Con FedCM el dialogo de eleccion de cuenta lo dibuja el navegador,
+          // no una ventana emergente de Google. Sortea a los bloqueadores de
+          // popups —que dejaban este boton mudo— y es a donde Google esta
+          // migrando el flujo. Donde no haya soporte, la libreria vuelve sola
+          // al popup de siempre; por eso el aviso de bloqueo sigue en pie.
+          use_fedcm_for_button: true,
         });
 
         // En desarrollo React monta los efectos dos veces; sin esto quedarian
@@ -162,6 +177,7 @@ function BotonGoogle({
 
     return () => {
       vivo = false;
+      dejarDeVigilar();
     };
   }, [alFallar]);
 

@@ -355,3 +355,5 @@ que falta.
 | Todo anda pero se siente lento en cada pantalla | la Api y la base quedaron en regiones distintas |
 | La primera carga del día tarda varios segundos | arranque en frío de Cloud Run, más el despertar de Supabase si estuvo quieta |
 | Anduvo una semana y de golpe nada | Supabase pausa el proyecto a los 7 días sin conexiones. Se despausa desde el panel |
+| Google corta con `401 invalid_client` antes de pedir la cuenta | el `VITE_GOOGLE_CLIENT_ID` cargado en Vercel no coincide con un cliente real. Ver *Problemas comunes* en [`autenticacion.md`](autenticacion.md) |
+| Se corrigió una variable en Vercel y sigue igual | el redeploy reusó el cache de build. Hay que destildar **Use existing Build Cache** |
