@@ -194,15 +194,16 @@ export function NuevoMovimiento() {
                 </p>
               ) : (
                 /*
-                  Tres columnas y no cuatro. Medido a 375px de pantalla, que es
-                  el celular tipico: con cuatro columnas quedan 53px para el
-                  texto y "Supermercado" mide 96px, asi que no entra a ningun
-                  tamanio legible y la palabra se salia del recuadro. Con tres
-                  columnas, poco margen lateral y un punto menos de letra
-                  quedan 96px contra 86px que necesita, y entra en una linea.
-                  Desde tablet vuelven a ser cuatro, donde sobra lugar.
+                  Tres columnas y no cuatro, en cualquier pantalla: el formulario
+                  vive siempre en una columna de 390px, asi que en la computadora
+                  no sobra un pixel respecto del celular y una cuarta columna solo
+                  achica las celdas. Medido a 375px, que es el celular tipico: con
+                  cuatro columnas quedaban 53px para el texto y "Supermercado" mide
+                  86px, asi que la palabra empujaba la celda y se salia del
+                  recuadro. Con tres quedan 83px y el nombre entra, partido en dos
+                  renglones cuando hace falta.
                 */
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-3 gap-2">
                   {categoriasDelTipo.map((categoria) => {
                     const elegida = categoria.id === categoriaId;
                     return (
@@ -219,12 +220,13 @@ export function NuevoMovimiento() {
                       >
                         <Icono nombre={iconoDe(categoria)} relleno={elegida} />
                         {/*
-                          Las categorias que vienen de fabrica entran en una linea, pero
-                          el nombre lo pone el usuario y puede ser cualquiera. Sin esto,
-                          una palabra larga empuja la celda y se sale del recuadro:
-                          hyphens-auto la corta con guion donde corresponde en castellano
-                          y break-words es la red de seguridad para cuando el navegador
-                          no tiene el diccionario.
+                          El nombre lo pone el usuario y puede ser cualquiera, asi que
+                          ninguna medida alcanza para que siempre entre en un renglon.
+                          Sin esto una palabra larga empuja la celda y se sale del
+                          recuadro: hyphens-auto la corta con guion donde corresponde en
+                          castellano (por eso el index.html lleva lang="es") y
+                          break-words es la red de seguridad para cuando el navegador no
+                          tiene el diccionario.
                         */}
                         <span className="w-full text-center font-label-sm text-[12px] leading-tight hyphens-auto break-words">
                           {categoria.nombre}
