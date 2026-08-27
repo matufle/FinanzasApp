@@ -193,7 +193,16 @@ export function NuevoMovimiento() {
                   </Link>
                 </p>
               ) : (
-                <div className="grid grid-cols-4 gap-2">
+                /*
+                  Tres columnas y no cuatro. Medido a 375px de pantalla, que es
+                  el celular tipico: con cuatro columnas quedan 53px para el
+                  texto y "Supermercado" mide 96px, asi que no entra a ningun
+                  tamanio legible y la palabra se salia del recuadro. Con tres
+                  columnas, poco margen lateral y un punto menos de letra
+                  quedan 96px contra 86px que necesita, y entra en una linea.
+                  Desde tablet vuelven a ser cuatro, donde sobra lugar.
+                */
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {categoriasDelTipo.map((categoria) => {
                     const elegida = categoria.id === categoriaId;
                     return (
@@ -202,14 +211,24 @@ export function NuevoMovimiento() {
                         type="button"
                         onClick={() => setCategoriaId(categoria.id)}
                         aria-pressed={elegida}
-                        className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 transition-transform active:scale-95 ${
+                        className={`flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-1 py-3 transition-transform active:scale-95 ${
                           elegida
                             ? estilos.chipActivo
                             : "border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
                         }`}
                       >
                         <Icono nombre={iconoDe(categoria)} relleno={elegida} />
-                        <span className="font-label-sm text-label-sm">{categoria.nombre}</span>
+                        {/*
+                          Las categorias que vienen de fabrica entran en una linea, pero
+                          el nombre lo pone el usuario y puede ser cualquiera. Sin esto,
+                          una palabra larga empuja la celda y se sale del recuadro:
+                          hyphens-auto la corta con guion donde corresponde en castellano
+                          y break-words es la red de seguridad para cuando el navegador
+                          no tiene el diccionario.
+                        */}
+                        <span className="w-full text-center font-label-sm text-[12px] leading-tight hyphens-auto break-words">
+                          {categoria.nombre}
+                        </span>
                       </button>
                     );
                   })}

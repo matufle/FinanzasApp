@@ -126,7 +126,9 @@ function TarjetaCategoria({
       >
         <Icono nombre={iconoDe(categoria)} relleno />
       </div>
-      <h3 className="font-headline-md text-headline-md text-primary">{categoria.nombre}</h3>
+      <h3 className="w-full font-headline-md text-headline-md text-primary hyphens-auto break-words">
+        {categoria.nombre}
+      </h3>
       <p className="font-label-sm text-label-sm text-outline">
         {movimientos === 1 ? "1 movimiento" : `${movimientos} movimientos`}
       </p>
